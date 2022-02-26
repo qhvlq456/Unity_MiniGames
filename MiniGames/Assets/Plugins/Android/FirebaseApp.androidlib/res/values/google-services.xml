@@ -1,11 +1,12 @@
 <?xml version='1.0' encoding='utf-8'?>
-<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@string/firebase_database_url,@string/gcm_defaultSenderId,@string/google_storage_bucket,@string/project_id,@string/google_api_key,@string/google_crash_reporting_api_key,@string/google_app_id,@string/default_web_client_id">
-  <string name="firebase_database_url" translatable="false">https://fir-games-28ad7-default-rtdb.firebaseio.com</string>
-  <string name="gcm_defaultSenderId" translatable="false">181337782697</string>
-  <string name="google_storage_bucket" translatable="false">fir-games-28ad7.appspot.com</string>
-  <string name="project_id" translatable="false">fir-games-28ad7</string>
-  <string name="google_api_key" translatable="false">AIzaSyBxdoD5eB2R_w6qfEbgSM9ebw_Y_mR1Kr0</string>
-  <string name="google_crash_reporting_api_key" translatable="false">AIzaSyBxdoD5eB2R_w6qfEbgSM9ebw_Y_mR1Kr0</string>
-  <string name="google_app_id" translatable="false">1:181337782697:android:c9b06cd1015050923cecb8</string>
-  <string name="default_web_client_id" translatable="false">181337782697-bvidfonkgtlufou4d769c7kj63ho8t23.apps.googleusercontent.com</string>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@string/firebase_database_url,@string/gcm_defaultSenderId,@string/google_storage_bucket,@string/project_id,@string/google_api_key,@string/google_crash_reporting_api_key,@string/google_app_id,@string/default_android_client_id,@string/default_web_client_id">
+  <string name="firebase_database_url" translatable="false">https://minigames-70ff3-default-rtdb.firebaseio.com</string>
+  <string name="gcm_defaultSenderId" translatable="false">436135404793</string>
+  <string name="google_storage_bucket" translatable="false">minigames-70ff3.appspot.com</string>
+  <string name="project_id" translatable="false">minigames-70ff3</string>
+  <string name="google_api_key" translatable="false">AIzaSyCt6fNqNwyCt3uF-d6bBTR7EEfH631iaQg</string>
+  <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCt6fNqNwyCt3uF-d6bBTR7EEfH631iaQg</string>
+  <string name="google_app_id" translatable="false">1:436135404793:android:3c75f782180cd86b87ae28</string>
+  <string name="default_android_client_id" translatable="false">436135404793-9ve3crmqkp0dgpel344770ektv9j72om.apps.googleusercontent.com</string>
+  <string name="default_web_client_id" translatable="false">436135404793-rafnni3e14fodbm4ftrual8k1bvs650f.apps.googleusercontent.com</string>
 </resources>

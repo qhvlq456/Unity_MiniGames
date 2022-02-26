@@ -13,9 +13,9 @@ public class LogoManager : MonoBehaviour
 
     Text titleText, subtitleText, versionText;
     public void Awake() {
-        titleText = GameObject.Find("Title_Text").GetComponent<Text>();
-        subtitleText = GameObject.Find("SubTitle_Text").GetComponent<Text>();
-        versionText = GameObject.Find("Version_Text").GetComponent<Text>();
+        titleText = GameObject.Find("TitleText").GetComponent<Text>();
+        subtitleText = GameObject.Find("SubTitleText").GetComponent<Text>();
+        versionText = GameObject.Find("VersionText").GetComponent<Text>();
 
         titleText.text = $"{GameVariable.logoTitle}";
         subtitleText.text = $"Press On your key";
