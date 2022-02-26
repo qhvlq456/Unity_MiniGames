@@ -3,7 +3,13 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - bunny
+  - bear
+  - hellephant
+  - ConcaveStone
+  - Obstacle
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -13,8 +19,8 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
+  - Floor
+  - Shootable
   - 
   - 
   - 
@@ -40,4 +46,16 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: BackGround
+    uniqueID: 1893965535
+    locked: 0
+  - name: Bottom
+    uniqueID: 2474811785
+    locked: 0
+  - name: Obstacle
+    uniqueID: 3639564629
+    locked: 0
+  - name: Object
+    uniqueID: 1844369755
     locked: 0

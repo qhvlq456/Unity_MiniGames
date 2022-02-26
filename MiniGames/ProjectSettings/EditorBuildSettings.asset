@@ -4,5 +4,38 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Menu/Logo.unity
+    guid: 0b32429c43e990148a093b0e865f4782
+  - enabled: 1
+    path: Assets/Scenes/Menu/Main.unity
+    guid: 8ae9d4c91e28cbf4fbc1fef2b17e46f7
+  - enabled: 1
+    path: Assets/Scenes/Network/Lobby.unity
+    guid: fc73cc67f8c131b42a1aad82f7fdc930
+  - enabled: 1
+    path: Assets/Scenes/Network/Room.unity
+    guid: 7a81b8e12343aea49a07f6a0720a9219
+  - enabled: 1
+    path: Assets/Scenes/GameScene/Flappy.unity
+    guid: f9f49421c8575a540a9ca74078d2e0de
+  - enabled: 1
+    path: Assets/Scenes/GameScene/Angry.unity
+    guid: 6834c6869b5192546a9c015a8f4d3d7a
+  - enabled: 1
+    path: Assets/Scenes/GameScene/LocalOmok.unity
+    guid: 88d17a340802c0643bfdae659e0861b2
+  - enabled: 1
+    path: Assets/Scenes/GameScene/LocalOthello.unity
+    guid: 77a753f056bd4ab458ef5153e0180ceb
+  - enabled: 1
+    path: Assets/Scenes/GameScene/NightMare.unity
+    guid: bba52ac2656940b46bd104f344ee707b
+  - enabled: 1
+    path: Assets/Scenes/GameScene/Omok.unity
+    guid: 020f1aa7bd468134592bdf98a12b3ea9
+  - enabled: 1
+    path: Assets/Scenes/GameScene/Othello.unity
+    guid: e6216ebb2e2709a42ace497bd5a661ff
   m_configObjects: {}
