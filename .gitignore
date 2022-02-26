@@ -1,11 +1,10 @@
+# Created by https://www.toptal.com/developers/gitignore/api/unity
+# Edit at https://www.toptal.com/developers/gitignore?templates=unity
+
+### Unity ###
 # This .gitignore file should be placed at the root of your Unity project directory
 #
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
-#
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 71f6153fa1bdcfdf049e2d3836121cc2a3fdd15f
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
@@ -13,10 +12,6 @@
 [Bb]uilds/
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
-<<<<<<< HEAD
->>>>>>> 824bb8a372f4e5944536f7af525dbac729fa847d
-=======
->>>>>>> 71f6153fa1bdcfdf049e2d3836121cc2a3fdd15f
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
@@ -77,8 +72,6 @@ crashlytics-build.properties
 
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
-<<<<<<< HEAD
 /[Aa]ssets/[Ss]treamingAssets/aa/*
-=======
-/[Aa]ssets/[Ss]treamingAssets/aa/*
->>>>>>> 824bb8a372f4e5944536f7af525dbac729fa847d
+
+# End of https://www.toptal.com/developers/gitignore/api/unity
