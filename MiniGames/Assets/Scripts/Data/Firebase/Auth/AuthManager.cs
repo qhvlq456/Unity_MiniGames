@@ -2,156 +2,196 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using GooglePlayGames;
+using GooglePlayGames.BasicApi;
 using Firebase.Auth;
+using Firebase.Database;
 public class AuthManager : MonoBehaviour
 {
-    [Header("SingIn UI")]
+    [Header("Google Play Connection UI")]
     [SerializeField]
-    InputField inIdInput;
+    Text googleStatusText;
+    [Header("Firebase Connection UI")]
+    FirebaseAuth auth;
     [SerializeField]
-    InputField inPwInput;
-    [SerializeField]
-    Text playerInfoText;
-    [SerializeField]
-    Animator inAnim;
-
-    [Header("SingUp UI")]
-    [SerializeField]
-    InputField upIdInput;
-    [SerializeField]
-    InputField upPwInput;
-    [SerializeField]
-    InputField upPwConfirmInput;
+    Text firebaseStatusText;
     [SerializeField]
     InputField nickNameInput;
+    [Header("NickNameUI")]
     [SerializeField]
-    Animator upAnim;
-
+    GameObject nickNameUI;
+    [Header("LogoManagerButton Create")]
     [SerializeField]
-    Text testText;
+    GameObject screenOverlay;
+    [SerializeField]
+    Animator inAnim;
     EAuthError type;
     bool isAsync = false;
+    private void Awake() {
+        PlayGamesClientConfiguration config = new PlayGamesClientConfiguration.Builder()
+        .RequestIdToken()
+        .RequestEmail()
+        .Build();
+
+        PlayGamesPlatform.InitializeInstance(config);
+        PlayGamesPlatform.DebugLogEnabled = true;
+        PlayGamesPlatform.Activate(); // Play Games Active(활성화)
+
+        auth = FirebaseAuth.DefaultInstance;
+    }
+    private void Start() {
+        TryGoogleLogin();
+    }
     private void Update() {
         Debug.Log(FirebaseAuth.DefaultInstance.CurrentUser == null ? "current user null" : "current user not null");
     }
-    public void OnClickSignInButton() // sign in
+    public void TryGoogleLogin()
     {
-        SoundManager.instance.PlayClip(EEffactClipType.DefaultButton);
-
-        StartCoroutine(WaitAsync());
-        if(FirebaseAuth.DefaultInstance.CurrentUser != null)
+        if(!Social.localUser.authenticated) // 로그인 상태가 아니라면
         {
-            type = EAuthError.AlreadyEnter;
-            return;
-        }
-
-        if(string.IsNullOrEmpty(inIdInput.text) || string.IsNullOrEmpty(inPwInput.text))
-        {
-            type = EAuthError.Empty;
-            Debug.Log("Please input id or pw");
-            isAsync = true;
-            return;
-        }
-
-        string _id = inIdInput.text;
-        string _pw = inPwInput.text;
-
-        
-        FirebaseAuth.DefaultInstance.SignInWithEmailAndPasswordAsync(_id,_pw).ContinueWith(
-            task => {
-                if(task.IsCanceled)
-                {
-                    type = EAuthError.Fail;
-                    print("Login fail");
-                    isAsync = true;
-                    return;
-                }
-                if(task.IsFaulted)
-                {
-                    type = EAuthError.Fail;
-                    print("Login error");
-                    isAsync = true;
-                    return;
-                }
-                FirebaseUser user = task.Result;
-                type = EAuthError.Success;
-                print("Success Login");
-                InitAuth();
-                isAsync = true;
-            }
-        );
-
-        inIdInput.text = "";
-        inPwInput.text = "";
-    }
-    public void OnClickSignUpButton() // SignUp
-    {
-        SoundManager.instance.PlayClip(EEffactClipType.DefaultButton);
-        StartCoroutine(WaitAsync());
-
-        if(string.IsNullOrEmpty(upIdInput.text) || string.IsNullOrEmpty(upPwInput.text) 
-        || string.IsNullOrEmpty(upPwConfirmInput.text) || string.IsNullOrEmpty(nickNameInput.text))
-        {
-            type = EAuthError.Empty;
-            isAsync = true;
-            Debug.LogError("Please check inputField!!");
-        }
-        else
-        {
-            if(upPwInput.text != upPwConfirmInput.text)
+            Social.localUser.Authenticate(success => 
             {
-                type = EAuthError.NotEqual;
-                isAsync = true;
-                Debug.LogError("Not equal pw and confirm pw");
+                string status = "";
+                if(success)
+                {
+                    status = "Success google play login";
+                    Debug.Log(status);
+                    googleStatusText.text = status;
+                    StartCoroutine(TryFirebaseLogin()); // try firebase login
+                }
+                else
+                {
+                    status = "Fail google play login";
+                    Debug.Log(status);
+                    googleStatusText.text = status;
+                }
+            });
+        }
+    }
+    // FirebaseAuth를 통해 FirebaseUser를 얻고난 후 User의 UID를 활용할 것이다
+    IEnumerator TryFirebaseLogin()
+    {
+        while(string.IsNullOrEmpty(((PlayGamesLocalUser)Social.localUser).GetIdToken()))
+            yield return null;
+        string idToken = ((PlayGamesLocalUser)Social.localUser).GetIdToken();
+
+        Credential credential = GoogleAuthProvider.GetCredential(idToken,null);
+        
+        auth.SignInWithCredentialAsync(credential).ContinueWith(task => 
+        {
+            string status = "";
+
+            if(task.IsFaulted)
+            {
+                status = "Firebase google login is Fail";
+                Debug.Log(status);
+                firebaseStatusText.text = status;
                 return;
             }
-            else
-            {
-                FirebaseAuth.DefaultInstance.CreateUserWithEmailAndPasswordAsync(upIdInput.text,upPwInput.text).ContinueWith(
-                    task => 
-                    {
-                        if(task.IsCanceled)
-                        {
-                            type = EAuthError.NotCreate;
-                            print("Login fail");
-                            isAsync = true;
-                            return;
-                        }
-                        if(task.IsFaulted)
-                        {
-                            type = EAuthError.NotCreate;
-                            isAsync = true;
-                            print("Login error");
-                            return;
-                        }
-                        type = EAuthError.Create;
 
-                        FirebaseUser user = task.Result;
-                        Debug.LogFormat("Sign up name = {0} , email = {1} Success",user.DisplayName, user.UserId);
-                        DataManager.instance.Create(nickNameInput.text);
-                        Debug.Log($"Auth name = {nickNameInput.text}");
-                        isAsync = true;
-                    }
-                );
+            if(task.IsCanceled)
+            {
+                status = "Firebase google login is cancel";
+                Debug.Log(status);
+                firebaseStatusText.text = status;
+                return;
             }
-        }
+            status = "Firebase google login is success";
+            Debug.Log(status);
+            firebaseStatusText.text = status;
+            // 처음 들어온 유저인지, 이미 존재하는 유저인지 확인
+            CreateOrLoadData();
+        });
+    }
+    public void CreateOrLoadData()
+    {
+        FirebaseDatabase.DefaultInstance.GetReference(DataManager.instance.tableName).GetValueAsync().ContinueWith(task => 
+        {
+            if(task.IsFaulted)
+            {
+                return;
+            }
+            if(task.IsCanceled)
+            {
+                return;
+            }
+            if(task.IsCompleted)
+            {
+                bool isExist = false;
+                DataSnapshot snapshot = task.Result;
+                
+                foreach(var data in snapshot.Children)
+                {
+                    IDictionary value = (IDictionary)data.Value;
+                    if((string)value["uid"] == auth.CurrentUser.UserId) // 여기서 나와 같은 uid를 찾는다
+                    {
+                        isExist = true;
+                        break;
+                    }
+                }
+                if(!isExist) // 처음 들어온 유저라면 닉네임 창을 표시함
+                {
+                    firebaseStatusText.text = "Firebase data not exist load data";
+                    nickNameUI.SetActive(true);
+                }
+                else
+                {
+                    firebaseStatusText.text = "Firebase data exist load data";
+                    DataManager.instance.Load();
+                    Destroy(screenOverlay); // 이 overlay가 파괴되기 전까지 진입 기타등등 아무것도 하지못한다
+                }
+            }
+        });
+    }
+    public void OnClickConfirmNickName() // nickname중복 확인
+    {
+        StartCoroutine(WaitAsync());
+        FirebaseDatabase.DefaultInstance.GetReference(DataManager.instance.tableName).Child("PlayerData").GetValueAsync().ContinueWith(task =>
+        {
+            if(task.IsFaulted)
+            {
+                return;
+            }
+            if(task.IsCanceled)
+            {
+                return;
+            }
+            if(task.IsCompleted)
+            {
+                bool isOverlap = false;
+                DataSnapshot snapshot = task.Result;
+                foreach(var data in snapshot.Children)
+                {
+                    IDictionary value = (IDictionary)data.Value;
+                    if((string)value[DataManager.instance.c_Nick] == nickNameInput.text)
+                    {
+                        isOverlap = true;
+                        type = EAuthError.Exist;
+                        break;
+                    }
+                }
+
+                if(!isOverlap)
+                {
+                    type = EAuthError.Success;
+                    DataManager.instance.Create(nickNameInput.text);
+                    nickNameUI.SetActive(false);
+                    CreateOrLoadData(); // database를 생성하고 다시 load하기 위해 호출
+                }
+                isAsync = true;
+            }
+        });
     }
     public void OnClickInCancelAnim()
     {
-        InitAuth();
         StartCoroutine(AuthCloseDelay(inAnim,false));
-    }
-    public void OnClickUpCancelAnim()
-    {
-        InitAuth();
-        StartCoroutine(AuthCloseDelay(upAnim,false));
     }
     IEnumerator WaitAsync()
     {
         yield return new WaitUntil(() => isAsync);
         CreateAuthAlert();
-        isAsync = true;
-        InitAuth();
+        //isAsync = true;
+        isAsync = false;
     }
     IEnumerator AuthCloseDelay(Animator anim, bool value)
     {
@@ -162,14 +202,6 @@ public class AuthManager : MonoBehaviour
         yield return new WaitForSeconds(anim.GetCurrentAnimatorClipInfo(0).Length); // close 시간 보장이구나
         anim.gameObject.SetActive(value);
         anim.ResetTrigger("isClose");
-        InitAuth();
-    }
-    void InitAuth()
-    {
-        upIdInput.text = "";
-        upPwInput.text = "";
-        upPwConfirmInput.text = "";
-        nickNameInput.text = "";
     }
     
     public void CreateAuthAlert()

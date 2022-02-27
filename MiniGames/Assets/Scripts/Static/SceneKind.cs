@@ -72,8 +72,8 @@ public class SceneKind : MonoBehaviour
         {ESceneKind.Flappy, new SceneValue(new GameOptions(ESceneType.Game,EGameKind.Horizontal,EGamePlayType.Local),"Flappy",4)},
         {ESceneKind.Angry, new SceneValue(new GameOptions(ESceneType.Game,EGameKind.Horizontal,EGamePlayType.Local),"Angry",5)},
         {ESceneKind.NightMare, new SceneValue(new GameOptions(ESceneType.Game,EGameKind.Nightmare,EGamePlayType.Local),"NightMare",6)},
-        {ESceneKind.LocalOmok, new SceneValue(new GameOptions(ESceneType.Game,EGameKind.BoardGame,EGamePlayType.Local),"LocalOmok", 7)},
-        {ESceneKind.LocalOthello, new SceneValue(new GameOptions(ESceneType.Game,EGameKind.BoardGame,EGamePlayType.Local),"LocalOthello",8)},
+        {ESceneKind.LocalOmok, new SceneValue(new GameOptions(ESceneType.Game,EGameKind.BoardGame,EGamePlayType.None),"LocalOmok", 7)},
+        {ESceneKind.LocalOthello, new SceneValue(new GameOptions(ESceneType.Game,EGameKind.BoardGame,EGamePlayType.None),"LocalOthello",8)},
         {ESceneKind.Omok, new SceneValue(new GameOptions(ESceneType.Game,EGameKind.BoardGame,EGamePlayType.Multi),"Omok",9)},
         {ESceneKind.Othello, new SceneValue(new GameOptions(ESceneType.Game,EGameKind.BoardGame,EGamePlayType.Multi),"Othello",10)}
     };

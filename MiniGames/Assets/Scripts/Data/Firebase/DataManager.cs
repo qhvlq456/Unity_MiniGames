@@ -7,16 +7,15 @@ using Firebase.Auth;
 public class DataManager : MonoBehaviour
 {
     public static DataManager instance = null;
-    public PlayerInfo player;
+    public PlayerInfo player = null;
     public FirebaseAuth auth;
     DatabaseReference reference;
     public readonly string tableName = "PlayerData";
-    public readonly string c_Id = "Id";
     public readonly string c_Nick = "nickName";
     public readonly string c_Coin = "coin";
     // construct default value
-    const long defaultScore = 0;
-    const long defaultCoin = 100;
+    public readonly long defaultScore = 0;
+    public readonly long defaultCoin = 100;
     private void Awake() {
         if(instance == null)
         {
@@ -35,22 +34,22 @@ public class DataManager : MonoBehaviour
     void OnLoadChanged(object sender, ValueChangedEventArgs args) // 어차피 모든 데이터 load되면 좋잖아;;
     {
         Debug.Log("Call OnLoadChanged!!");
-        string id = player.GetReplaceId();
+        string uid = player.uid;
 
-        player.nickName = args.Snapshot.Child(id).Child(c_Nick).GetValue(true).ToString();
-        player.coin = (long)args.Snapshot.Child(id).Child(c_Coin).GetValue(true);
+        player.nickName = args.Snapshot.Child(uid).Child(c_Nick).GetValue(true).ToString();
+        player.coin = (long)args.Snapshot.Child(uid).Child(c_Coin).GetValue(true);
 
         for(int i = 0; i < SceneKind.sceneValue.Count; i++)
         {
             if(SceneKind.sceneValue[(ESceneKind)i].gameOptions.gameKind == EGameKind.None) continue;
 
             player.SetScore(SceneKind.sceneValue[(ESceneKind)i].sceneName,
-            args.Snapshot.Child(id).Child(SceneKind.sceneValue[(ESceneKind)i].sceneName).GetValue(true));
+            args.Snapshot.Child(uid).Child(SceneKind.sceneValue[(ESceneKind)i].sceneName).GetValue(true));
         }
     }
     public void Load()
     {   
-        player = new PlayerInfo(auth.CurrentUser.Email);
+        player = new PlayerInfo(auth.CurrentUser.UserId);
         
         reference.ValueChanged += OnLoadChanged;
     }
@@ -59,7 +58,7 @@ public class DataManager : MonoBehaviour
     {
         DatabaseReference reference = FirebaseDatabase.DefaultInstance.RootReference;
 
-        reference.Child(tableName).Child(player.GetReplaceId()).Child(columnName).SetValueAsync(value);
+        reference.Child(tableName).Child(player.uid).Child(columnName).SetValueAsync(value);
     }
     public void UpdateCoin(long value)
     {
@@ -68,13 +67,13 @@ public class DataManager : MonoBehaviour
         
         UpdateColumn<long>(c_Coin,coin);
     }
-    public void Create(string _name) // create class => to json => save database .. create class => to dictionary => save database
+    public void Create(string nickName) // create class => to json => save database .. create class => to dictionary => save database
     {
         DatabaseReference reference = FirebaseDatabase.DefaultInstance.RootReference;
 
-        PlayerInfo newPlayer = new PlayerInfo(auth.CurrentUser.Email);
+        PlayerInfo newPlayer = new PlayerInfo(auth.CurrentUser.UserId);
         newPlayer.coin = defaultCoin;
-        newPlayer.nickName = _name;
+        newPlayer.nickName = nickName;
 
         for(int i = 0; i < SceneKind.sceneValue.Count; i++)
         {
@@ -83,17 +82,18 @@ public class DataManager : MonoBehaviour
 
             if(kind == EGameKind.BoardGame && playType == EGamePlayType.Multi)
                 newPlayer.SetScore(SceneKind.sceneValue[(ESceneKind)i].sceneName,"0/0");
-            else if(kind == EGameKind.None) continue;
+            else if(kind == EGameKind.None || playType == EGamePlayType.None) continue;
             else
                 newPlayer.SetScore(SceneKind.sceneValue[(ESceneKind)i].sceneName,0);
         }
-        reference.Child(tableName).Child(newPlayer.GetReplaceId()).UpdateChildrenAsync(newPlayer.ToDictionary());
+        reference.Child(tableName).Child(newPlayer.uid).UpdateChildrenAsync(newPlayer.ToDictionary());
     }
     // logout
     public void Logout()
     {
         GameQuit();
         auth.SignOut();
+        GooglePlayGames.PlayGamesPlatform.Instance.SignOut();
     }
     public void GameQuit()
     {

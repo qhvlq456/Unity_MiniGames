@@ -42,7 +42,7 @@ public class LocalResult : Result
 
         if(GameManager.score > (long)DataManager.instance.player.GetScore(gameName))
         {
-            Victory(list);
+            Victory(GameManager.score,list);
         }
         else
         {
@@ -67,24 +67,13 @@ public class LocalResult : Result
             }
         }
 
-        string record = (string)DataManager.instance.player.GetScore(gameName);
-        string[] newRecord = record.Split(new char[] {'/'}); // front victory, back defeat
-
         if((int)m_Player.playerType == victory) // 이거 더 줄일 수 있다 .. 근데 로직을 변경해야 되넼ㅋㅋ
         {
-            long value = long.Parse(newRecord[0]);
-            value++;
-            newRecord[0] = value.ToString();
-            record = newRecord[0] + '/' + newRecord[1];
-            Victory(null,record,"Victory");
+            SetContentText("Victory");
         }
         else
         {
-            long value = long.Parse(newRecord[1]);
-            value++;
-            newRecord[1] = value.ToString();
-            record = newRecord[0] + '/' + newRecord[1];
-            Lose(null,true,record,"Lose");
+            SetContentText("Lose");
         }
     }
     public void NightMareResult()
@@ -102,16 +91,17 @@ public class LocalResult : Result
         if(GameManager.score > (long)DataManager.instance.player.GetScore(gameName))
         {
             body += $"Total = {NightmareManager.Manager.score} \n My Best Score {NightmareManager.Manager.score}";
-            Victory(null,null,body);
+            Victory(GameManager.score);
         }
         else
         {
             long value = (long)DataManager.instance.player.GetScore(gameName);
             body += $"Total = {NightmareManager.Manager.score} \n My Best Score {value}";
-            Lose(null,false,null,body);
+            Lose();
         }
+        SetContentText(body);
     }
-    void Victory(List<KeyValuePair<string,object>> list = null, string record = null, string body = null) // 무조건 update필요
+    void Victory(long score ,List<KeyValuePair<string,object>> list = null) // 무조건 update필요
     {
         // # Effect Sound
         SoundManager.instance.PlayClip(EEffactClipType.Victory);
@@ -121,31 +111,19 @@ public class LocalResult : Result
             case "Flappy" : 
             case "Angry" :
             case "NightMare" :
-                DataManager.instance.UpdateColumn<long>(gameName,GameManager.score);
-                break;
-            case "LocalOmok" :
-            case "LocalOthello" : 
-                DataManager.instance.UpdateColumn<string>(gameName,record);
-                break;
+                DataManager.instance.UpdateColumn<long>(gameName,score);
+            break;
         }
-        // 2. appear alert text
-        if(body != null)
-            SetContentText(body);
-        else
+        if(list != null)
             RankSort(gameName);
     }
     // board 게임을 제외한 다른게임들은 update 불필요
-    void Lose(List<KeyValuePair<string,object>> list = null ,bool isBoard = false, string record = null, string body = null)
+    void Lose(List<KeyValuePair<string,object>> list = null)
     {
         // # Effect Sound
         SoundManager.instance.PlayClip(EEffactClipType.Lose);
-        // 1. update # condition : gamekind = boardgame
-        if(isBoard) // 2. appear alert text
-            DataManager.instance.UpdateColumn<string>(gameName,record);
-        
-        if(body != null)
-            SetContentText(body);
-        else
+
+        if(list != null)
             RankSort(gameName);
     }
     public override void OnClickRetryButton()

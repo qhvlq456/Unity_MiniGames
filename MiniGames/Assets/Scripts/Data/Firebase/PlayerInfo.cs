@@ -7,21 +7,10 @@ using System;
 [Serializable]
 public class PlayerInfo
 {
-    public string id {set; private get;}
+    public string uid;
     public string nickName;
     public long coin;
     Dictionary<string,object> scores = new Dictionary<string, object>();
-    public string GetOriginId()
-    {
-        return id;
-    }
-    public string GetReplaceId()
-    {
-        string _id = id.Replace('@',' ');
-        _id = _id.Replace('.',' ');
-
-        return _id;
-    }
     public void SetScore(string key, object value)
     {
         scores[key] = value;
@@ -30,19 +19,20 @@ public class PlayerInfo
     {
         return scores[key];
     }
-    public PlayerInfo(string id)
+    public PlayerInfo(string uid)
     {
-        this.id = id;
+        this.uid = uid;
     }
     public Dictionary<string,object> ToDictionary()
     {
+        scores.Add("uid",uid);
         scores.Add("nickName",nickName);
         scores.Add("coin",coin);
         return scores;
     }
     public string PlayerToJson()
     {
-        PlayerInfo info = new PlayerInfo(this.id);
+        PlayerInfo info = new PlayerInfo(this.uid);
         info.coin = this.coin;
         info.nickName = this.nickName;
         
