@@ -8,13 +8,8 @@ using Firebase.Auth;
 using Firebase.Database;
 public class AuthManager : MonoBehaviour
 {
-    [Header("Google Play Connection UI")]
-    [SerializeField]
-    Text googleStatusText;
     [Header("Firebase Connection UI")]
     FirebaseAuth auth;
-    [SerializeField]
-    Text firebaseStatusText;
     [SerializeField]
     InputField nickNameInput;
     [Header("NickNameUI")]
@@ -56,14 +51,12 @@ public class AuthManager : MonoBehaviour
                 {
                     status = "Success google play login";
                     Debug.Log(status);
-                    googleStatusText.text = status;
                     StartCoroutine(TryFirebaseLogin()); // try firebase login
                 }
                 else
                 {
                     status = "Fail google play login";
                     Debug.Log(status);
-                    googleStatusText.text = status;
                 }
             });
         }
@@ -85,7 +78,6 @@ public class AuthManager : MonoBehaviour
             {
                 status = "Firebase google login is Fail";
                 Debug.Log(status);
-                firebaseStatusText.text = status;
                 return;
             }
 
@@ -93,12 +85,10 @@ public class AuthManager : MonoBehaviour
             {
                 status = "Firebase google login is cancel";
                 Debug.Log(status);
-                firebaseStatusText.text = status;
                 return;
             }
             status = "Firebase google login is success";
             Debug.Log(status);
-            firebaseStatusText.text = status;
             // 처음 들어온 유저인지, 이미 존재하는 유저인지 확인
             CreateOrLoadData();
         });
@@ -131,12 +121,10 @@ public class AuthManager : MonoBehaviour
                 }
                 if(!isExist) // 처음 들어온 유저라면 닉네임 창을 표시함
                 {
-                    firebaseStatusText.text = "Firebase data not exist load data";
                     nickNameUI.SetActive(true);
                 }
                 else
                 {
-                    firebaseStatusText.text = "Firebase data exist load data";
                     DataManager.instance.Load();
                     Destroy(screenOverlay); // 이 overlay가 파괴되기 전까지 진입 기타등등 아무것도 하지못한다
                 }

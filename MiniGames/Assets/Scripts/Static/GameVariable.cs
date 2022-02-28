@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class GameVariable : MonoBehaviour
 {
-    public static string gameVersion = "1.0.0";
-    public static string logoTitle = "Lee yong hee JJang";    
+    public static string gameVersion = "1.4.0";
+    public static string logoTitle = "Mini Games";
     
     // Flappy Bird
     public static float blinkTime = 3f;
