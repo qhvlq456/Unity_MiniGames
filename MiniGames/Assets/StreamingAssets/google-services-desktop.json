@@ -23,6 +23,14 @@
           }
         },
         {
+          "client_id": "436135404793-ibbba4st0j7jmef00i70hob2rk35vlq7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.YongheeGames.MiniGames",
+            "certificate_hash": "ecfc66f2f238ad7dd13292ddc1e538da0eb89403"
+          }
+        },
+        {
           "client_id": "436135404793-rafnni3e14fodbm4ftrual8k1bvs650f.apps.googleusercontent.com",
           "client_type": 3
         }
