@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "181337782697",
+    "firebase_url": "https://fir-games-28ad7-default-rtdb.firebaseio.com",
+    "project_id": "fir-games-28ad7",
+    "storage_bucket": "fir-games-28ad7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:181337782697:android:c9b06cd1015050923cecb8",
+        "android_client_info": {
+          "package_name": "com.Yonghee.FirebaseGames"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "181337782697-bvidfonkgtlufou4d769c7kj63ho8t23.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxdoD5eB2R_w6qfEbgSM9ebw_Y_mR1Kr0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "181337782697-bvidfonkgtlufou4d769c7kj63ho8t23.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
