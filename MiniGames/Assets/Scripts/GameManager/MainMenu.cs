@@ -1,7 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
+
 public class MainMenu : MonoBehaviour
 {
     [Header("Main UI")]
@@ -10,32 +13,74 @@ public class MainMenu : MonoBehaviour
     [SerializeField]
     Text coinText;
     [SerializeField]
+    Text coinTimeText;
+    [SerializeField]
     GameObject optionsUI;
+
+    DateTime previousTime;
+    PlayerInfo _player = DataManager.instance.player;
 
     // 하.. id랑 pw를 이렇게 계속 받아서 쓰면 안될 것 같은데
     // 아 싱글톤 필요해 이건 나의 데이터가 계속 이리 되면 안됨;;
     private void Start() {
         SoundManager.instance.ChangeBGM(EBGMClipType.Main);
-        EnterMainMenu();
+        previousTime = DateTime.Now;
+
+        nameText.text = "Name : " + _player.nickName;
+        coinText.text = $"Coin : {_player.coin}";
+        coinTimeText.text = "00:00";
+
         GameView.ShowFade(new GameFadeOption{
             isFade = false,
             limitedTime = 1f,
         });
+
+        StartCoroutine(CoinRoutine());
+    }
+    async void OnEnable() {
+        await DataManager.instance.SetTimes();
+        _player.GetCoinTime();
+        DataManager.instance.SetTimesss();
     }
     private void Update() {
-        EnterMainMenu(); // 방법이 없음..ㅋㅋ
+        UpdateCoin();
     }
-    void EnterMainMenu()
+    private void OnDisable() {// save
+        Debug.Log("Func OnDisable");
+        DataManager.instance.SetTimesss();
+    }
+    void UpdateCoin()
     {
-        nameText.text = "Name : " + DataManager.instance.player.nickName;
+        if(_player.coin >= _player.maxCoin) return;
+
         coinText.text = "Coin : " + DataManager.instance.player.coin;
+        coinTimeText.text = TimeSpan.FromSeconds((DataManager.instance.player.coinTime - (long)(DateTime.Now.Subtract(previousTime).TotalSeconds)))
+        .ToString("mm':'ss");
     }
-    public void OnClickAddCoinButton()
+    IEnumerator CoinRoutine()
+    {
+        // true일 때 빠져나감
+        yield return new WaitUntil(() => _player.coin < _player.maxCoin);
+
+        while(_player.coinTime > 0)
+        {
+            yield return new WaitForSeconds(1f);
+            _player.coinTime--;
+            previousTime = DateTime.Now;
+        }
+        if(_player.coin < _player.maxCoin)
+        {
+            DataManager.instance.UpdateCoin(_player.addPerCoin);
+        }
+        _player.coinTime = _player.addCoinPerDelay;
+
+        StartCoroutine(CoinRoutine());
+    }
+    public void OnClickAddCoinButton() // 파기
     {
         SoundManager.instance.PlayClip(EEffactClipType.CoinButton);
 
         DataManager.instance.UpdateCoin(GameVariable.addCoin);
-        // EnterMainMenu();
     }
     public void OnClickQuitButton()
     {
@@ -86,7 +131,7 @@ public class MainMenu : MonoBehaviour
             limitedTime = 1f,
             sceneNum = sceneNum
         });
-        EnterMainMenu();
+        UpdateCoin();
     }
     public void OnClickSelectGameStyle(int sceneNum)
     {   
@@ -103,5 +148,8 @@ public class MainMenu : MonoBehaviour
     {
         SoundManager.instance.PlayClip(EEffactClipType.DefaultButton);
         optionsUI.SetActive(true);
+    }
+    private void OnApplicationQuit() {
+        DataManager.instance.SetTimesss();
     }
 }
