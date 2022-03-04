@@ -64,7 +64,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     void EnterPlayer()
     {
-        PhotonNetwork.LocalPlayer.NickName = DataManager.instance.player.nickName;//NCMBDataManager.instance.GetName(); // DataController.dataController.player.name;
+        PhotonNetwork.LocalPlayer.NickName = DataManager.instance.firebasePlayer.nickName;//NCMBDataManager.instance.GetName(); // DataController.dataController.player.name;
         nickNameText.text = $"Your name : {PhotonNetwork.LocalPlayer.NickName}";
         canvasGroup.interactable = false;
     }

@@ -150,7 +150,7 @@ public class AuthManager : MonoBehaviour
     {
         yield return new WaitUntil(() => isAsync);
         CreateAuthAlert();
-        isAsync = true;
+        isAsync = false;
         InitAuth();
     }
     IEnumerator AuthCloseDelay(Animator anim, bool value)

@@ -58,7 +58,7 @@ public class RoomManager : MonoBehaviourPunCallbacks
             readyList.Add(_readyUI);
             _readyUI.player = player;
 
-            DatabaseReference reference = FirebaseDatabase.DefaultInstance.GetReference(DataManager.instance.tableName);
+            DatabaseReference reference = FirebaseDatabase.DefaultInstance.GetReference(DataManager.instance.TABLENAME);
             reference.GetValueAsync().ContinueWith(task => {
                 if(task.IsFaulted)
                 {
@@ -82,7 +82,7 @@ public class RoomManager : MonoBehaviourPunCallbacks
                     foreach(var data in snapshot.Children)
                     {
                         IDictionary userInfo = (IDictionary)data.Value;
-                        if(player.NickName == (string)userInfo[DataManager.instance.c_Nick])
+                        if(player.NickName == (string)userInfo["nickName"])
                         {
                             string res = (string)userInfo[gameName];
                             roomReadyData.SetRecord(res);

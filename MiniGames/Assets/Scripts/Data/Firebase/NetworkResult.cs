@@ -28,7 +28,7 @@ public class NetworkResult : Result
                 break;
             }
         }
-        string record = (string)DataManager.instance.player.GetScore(gameName);
+        string record = (string)player.GetScore(gameName);
         string[] newRecord = record.Split(new char[] {'/'}); // front victory, back defeat
 
         if((int)m_Player.playerType == victory)
@@ -52,7 +52,7 @@ public class NetworkResult : Result
             newRecord[1] = value.ToString();
         }
         record = newRecord[0] + '/' + newRecord[1];
-        DataManager.instance.UpdateColumn<string>(gameName,record);
+        player.UpdateFirebaseDatabase<string>(id,gameName,record);
     }
     public override void OnClickMainButton()
     {

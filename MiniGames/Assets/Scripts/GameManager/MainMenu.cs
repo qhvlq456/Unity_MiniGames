@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Firebase.Auth;
 using UnityEngine;
 using UnityEngine.UI;
 using System;
@@ -16,19 +16,24 @@ public class MainMenu : MonoBehaviour
     Text coinTimeText;
     [SerializeField]
     GameObject optionsUI;
-
     DateTime previousTime;
-    PlayerInfo _player = DataManager.instance.player;
+    FirebasePlayerInfo player;
 
     // 하.. id랑 pw를 이렇게 계속 받아서 쓰면 안될 것 같은데
     // 아 싱글톤 필요해 이건 나의 데이터가 계속 이리 되면 안됨;;
-    private void Start() {
+    async void Awake() {
+        player = DataManager.instance.firebasePlayer;
+        await DataManager.instance.firebasePlayer.GetPlayer(FirebaseAuth.DefaultInstance.CurrentUser.Email);
+    }
+
+    void Start() {
         SoundManager.instance.ChangeBGM(EBGMClipType.Main);
         previousTime = DateTime.Now;
 
-        nameText.text = "Name : " + _player.nickName;
-        coinText.text = $"Coin : {_player.coin}";
+        nameText.text = "Name : " + player.nickName;
+        coinText.text = $"Coin : {player.coin}";
         coinTimeText.text = "00:00";
+        // coinTimeText.text = TimeSpan.FromSeconds(player.addCoinPerDelay).ToString("mm':'ss");
 
         GameView.ShowFade(new GameFadeOption{
             isFade = false,
@@ -37,55 +42,45 @@ public class MainMenu : MonoBehaviour
 
         StartCoroutine(CoinRoutine());
     }
-    async void OnEnable() {
-        await DataManager.instance.SetTimes();
-        _player.GetCoinTime();
-        DataManager.instance.SetTimesss();
-    }
     private void Update() {
-        UpdateCoin();
+        UpdateCoinTime();
     }
-    private void OnDisable() {// save
-        Debug.Log("Func OnDisable");
-        DataManager.instance.SetTimesss();
+    void OnDisable() { // database settimes
+        Debug.Log("OnDisable");
+        DataManager.instance.SetTimes();
     }
-    void UpdateCoin()
+    void UpdateCoinTime() // 이것도 해결하자 코루틴에 두면 안됨!! ㅋㅋ 코루틴에서만 실행됨;;
     {
-        if(_player.coin >= _player.maxCoin) return;
+        if(player.coin >= player.maxCoin) return; 
 
-        coinText.text = "Coin : " + DataManager.instance.player.coin;
-        coinTimeText.text = TimeSpan.FromSeconds((DataManager.instance.player.coinTime - (long)(DateTime.Now.Subtract(previousTime).TotalSeconds)))
+        coinText.text = "Coin : " + player.coin;
+        coinTimeText.text = TimeSpan.FromSeconds((player.coinTime - (long)(DateTime.Now.Subtract(previousTime).TotalSeconds)))
         .ToString("mm':'ss");
     }
     IEnumerator CoinRoutine()
     {
-        // true일 때 빠져나감
-        yield return new WaitUntil(() => _player.coin < _player.maxCoin);
-
-        while(_player.coinTime > 0)
+        while(player.coinTime > 0)
         {
             yield return new WaitForSeconds(1f);
-            _player.coinTime--;
+            player.coinTime--;
+
             previousTime = DateTime.Now;
         }
-        if(_player.coin < _player.maxCoin)
+        if(player.coin < player.maxCoin)
         {
-            DataManager.instance.UpdateCoin(_player.addPerCoin);
+            DataManager.instance.UpdateCoin(player.addPerCoin);
         }
-        _player.coinTime = _player.addCoinPerDelay;
 
+        player.coinTime = player.addCoinPerDelay;
+        player.UpdateFirebaseDatabase<long>(FirebaseAuth.DefaultInstance.CurrentUser.Email,"coinTime",player.coinTime);
+        // true일 때 빠져나감
+        yield return new WaitUntil(() => player.coin < player.maxCoin);
         StartCoroutine(CoinRoutine());
-    }
-    public void OnClickAddCoinButton() // 파기
-    {
-        SoundManager.instance.PlayClip(EEffactClipType.CoinButton);
-
-        DataManager.instance.UpdateCoin(GameVariable.addCoin);
     }
     public void OnClickQuitButton()
     {
         SoundManager.instance.PlayClip(EEffactClipType.DefaultButton);
-        DataManager.instance.GameQuit();
+        DataManager.instance.Quit();
 
         #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
@@ -118,7 +113,7 @@ public class MainMenu : MonoBehaviour
     {
         SoundManager.instance.PlayClip(EEffactClipType.DefaultButton);
         
-        if(DataManager.instance.player.coin <= 0 || DataManager.instance.player.coin < GameVariable.consumCoin)
+        if(player.coin <= 0 || player.coin < GameVariable.consumCoin)
         {
             AlertBoxView.ShowBox("lack coin","코인이 부족합니다 확인해주세요!");
             Debug.LogError("check coin");
@@ -126,12 +121,13 @@ public class MainMenu : MonoBehaviour
         }
 
         DataManager.instance.UpdateCoin(GameVariable.consumCoin * -1);
+        coinText.text = "Coin : " + player.coin;
         GameView.ShowFade(new GameFadeOption{
             isFade = true,
             limitedTime = 1f,
             sceneNum = sceneNum
         });
-        UpdateCoin();
+        
     }
     public void OnClickSelectGameStyle(int sceneNum)
     {   
@@ -149,7 +145,7 @@ public class MainMenu : MonoBehaviour
         SoundManager.instance.PlayClip(EEffactClipType.DefaultButton);
         optionsUI.SetActive(true);
     }
-    private void OnApplicationQuit() {
-        DataManager.instance.SetTimesss();
+    void OnApplicationQuit() {
+        DataManager.instance.Quit();
     }
 }

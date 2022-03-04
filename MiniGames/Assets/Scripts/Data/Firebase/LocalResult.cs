@@ -6,7 +6,7 @@ using Firebase.Database;
 
 // nightmare, local boardgame, horizontal game
 public class LocalResult : Result
-{    
+{
     void Start()
     {
         RendererButton();
@@ -28,7 +28,7 @@ public class LocalResult : Result
 
     void RendererButton()
     {
-        if (DataManager.instance.player.coin < GameVariable.consumCoin)
+        if (player.coin < GameVariable.consumCoin)
         {
             retryButton.interactable = false;
             Image sprite = retryButton.GetComponent<Image>();
@@ -40,7 +40,7 @@ public class LocalResult : Result
     {
         List<KeyValuePair<string,object>> list = new List<KeyValuePair<string, object>>();
 
-        if(GameManager.score > (long)DataManager.instance.player.GetScore(gameName))
+        if(GameManager.score > (long)player.GetScore(gameName))
         {
             Victory(list);
         }
@@ -67,7 +67,7 @@ public class LocalResult : Result
             }
         }
 
-        string record = (string)DataManager.instance.player.GetScore(gameName);
+        string record = (string)player.GetScore(gameName);
         string[] newRecord = record.Split(new char[] {'/'}); // front victory, back defeat
 
         if((int)m_Player.playerType == victory) // 이거 더 줄일 수 있다 .. 근데 로직을 변경해야 되넼ㅋㅋ
@@ -99,14 +99,14 @@ public class LocalResult : Result
             body += string.Format("{0} : {1}\n",enemyNames[i],NightmareManager.Manager.enemyKills[i]);
         }
 
-        if(GameManager.score > (long)DataManager.instance.player.GetScore(gameName))
+        if(GameManager.score > (long)player.GetScore(gameName))
         {
             body += $"Total = {NightmareManager.Manager.score} \n My Best Score {NightmareManager.Manager.score}";
             Victory(null,null,body);
         }
         else
         {
-            long value = (long)DataManager.instance.player.GetScore(gameName);
+            long value = (long)player.GetScore(gameName);
             body += $"Total = {NightmareManager.Manager.score} \n My Best Score {value}";
             Lose(null,false,null,body);
         }
@@ -121,11 +121,11 @@ public class LocalResult : Result
             case "Flappy" : 
             case "Angry" :
             case "NightMare" :
-                DataManager.instance.UpdateColumn<long>(gameName,GameManager.score);
+                player.UpdateFirebaseDatabase<long>(id,gameName,GameManager.score);
                 break;
             case "LocalOmok" :
             case "LocalOthello" : 
-                DataManager.instance.UpdateColumn<string>(gameName,record);
+                player.UpdateFirebaseDatabase<string>(id,gameName,record);
                 break;
         }
         // 2. appear alert text
@@ -141,7 +141,7 @@ public class LocalResult : Result
         SoundManager.instance.PlayClip(EEffactClipType.Lose);
         // 1. update # condition : gamekind = boardgame
         if(isBoard) // 2. appear alert text
-            DataManager.instance.UpdateColumn<string>(gameName,record);
+            player.UpdateFirebaseDatabase<string>(id,gameName,record);
         
         if(body != null)
             SetContentText(body);
@@ -152,7 +152,7 @@ public class LocalResult : Result
     {
         base.OnClickRetryButton();
 
-        if (DataManager.instance.player.coin >= GameVariable.consumCoin)
+        if (player.coin >= GameVariable.consumCoin)
         {
             DataManager.instance.UpdateCoin(-1 * GameVariable.consumCoin);
 
@@ -171,7 +171,7 @@ public class LocalResult : Result
     // Ranking
     public void RankSort(string columnName)
     {
-        DatabaseReference reference = FirebaseDatabase.DefaultInstance.GetReference(DataManager.instance.tableName);
+        DatabaseReference reference = FirebaseDatabase.DefaultInstance.GetReference(DataManager.instance.TABLENAME);
 
         reference.OrderByChild(columnName).GetValueAsync().ContinueWith(task => 
         {
@@ -194,7 +194,7 @@ public class LocalResult : Result
                 foreach(var data in snapshot.Children)
                 {
                     IDictionary userInfo = (IDictionary)data.Value;
-                    list.Add(new KeyValuePair<string, object>((string)userInfo[DataManager.instance.c_Nick],userInfo[columnName]));
+                    list.Add(new KeyValuePair<string, object>((string)userInfo["nickName"],userInfo[columnName]));
                 }
                 list.Sort((a,b) => (long)a.Value > (long)b.Value ? -1 : 1);
 
