@@ -16,66 +16,33 @@ public class MainMenu : MonoBehaviour
     Text coinTimeText;
     [SerializeField]
     GameObject optionsUI;
-    DateTime previousTime;
     FirebasePlayerInfo player;
 
     // 하.. id랑 pw를 이렇게 계속 받아서 쓰면 안될 것 같은데
     // 아 싱글톤 필요해 이건 나의 데이터가 계속 이리 되면 안됨;;
-    async void Awake() {
+    void Awake() {
         player = DataManager.instance.firebasePlayer;
-        await DataManager.instance.firebasePlayer.GetPlayer(FirebaseAuth.DefaultInstance.CurrentUser.Email);
+        DataManager.instance.firebasePlayer.GetPlayer(FirebaseAuth.DefaultInstance.CurrentUser.Email);
     }
 
     void Start() {
         SoundManager.instance.ChangeBGM(EBGMClipType.Main);
-        previousTime = DateTime.Now;
 
         nameText.text = "Name : " + player.nickName;
-        coinText.text = $"Coin : {player.coin}";
         coinTimeText.text = "00:00";
-        // coinTimeText.text = TimeSpan.FromSeconds(player.addCoinPerDelay).ToString("mm':'ss");
 
         GameView.ShowFade(new GameFadeOption{
             isFade = false,
             limitedTime = 1f,
         });
-
-        StartCoroutine(CoinRoutine());
     }
-    private void Update() {
-        UpdateCoinTime();
+    void Update() {
+        coinText.text = $"Coin : {player.coin}";
+        player.UpdateCoin(coinTimeText,() => DataManager.instance.UpdateCoin(player.addPerCoin));
     }
     void OnDisable() { // database settimes
         Debug.Log("OnDisable");
         DataManager.instance.SetTimes();
-    }
-    void UpdateCoinTime() // 이것도 해결하자 코루틴에 두면 안됨!! ㅋㅋ 코루틴에서만 실행됨;;
-    {
-        if(player.coin >= player.maxCoin) return; 
-
-        coinText.text = "Coin : " + player.coin;
-        coinTimeText.text = TimeSpan.FromSeconds((player.coinTime - (long)(DateTime.Now.Subtract(previousTime).TotalSeconds)))
-        .ToString("mm':'ss");
-    }
-    IEnumerator CoinRoutine()
-    {
-        while(player.coinTime > 0)
-        {
-            yield return new WaitForSeconds(1f);
-            player.coinTime--;
-
-            previousTime = DateTime.Now;
-        }
-        if(player.coin < player.maxCoin)
-        {
-            DataManager.instance.UpdateCoin(player.addPerCoin);
-        }
-
-        player.coinTime = player.addCoinPerDelay;
-        player.UpdateFirebaseDatabase<long>(FirebaseAuth.DefaultInstance.CurrentUser.Email,"coinTime",player.coinTime);
-        // true일 때 빠져나감
-        yield return new WaitUntil(() => player.coin < player.maxCoin);
-        StartCoroutine(CoinRoutine());
     }
     public void OnClickQuitButton()
     {

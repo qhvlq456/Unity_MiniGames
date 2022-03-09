@@ -12,10 +12,9 @@ public class FirebasePlayerInfo
     public string lastPlayTime;
     public long coinTime;
     public long coin;
-    string[] keyValue = new string[] // 나중에 안정화 되었을 때 dictionary로 관리하자
-    {
-        "nickName", "lastPlayTime", "coinTime", "coin"
-    };
+    bool isLoading = true;
+    DateTime coinDelayTime; // coinDelay를 더한 시간
+    DateTime currentTime; // 현재 시간
     Dictionary<string,object> scores = new Dictionary<string, object>();
     // const coin key
     public readonly string ADDCOIN = "addCoin";
@@ -48,7 +47,10 @@ public class FirebasePlayerInfo
         this.coinTime = coinTime;
         this.coin = coin;
     }
-    
+    public void IsLoading(bool value)
+    {
+        isLoading = value;
+    }
     // id
     public string GetReplacedId(string email)
     {
@@ -65,13 +67,13 @@ public class FirebasePlayerInfo
     {
         return scores[key];
     }
-    // Firebase Set Create Id // 아 이게 애초에 set이구나!!
+    // Firebase Set Create Id 
     public void CreatePlayer(string email, string nickName)
     {
-        DatabaseReference reference =  FirebaseDatabase.DefaultInstance.RootReference;
+        DatabaseReference reference = FirebaseDatabase.DefaultInstance.RootReference;
         this.nickName = nickName;
-        this.lastPlayTime = DateTime.Now.ToBinary().ToString();
-        this.coinTime = addCoinPerDelay;
+        this.lastPlayTime = DateTime.Now.ToString();
+        this.coinTime = 0;
         this.coin = maxCoin;
 
         for(int i = 0; i < SceneKind.sceneValue.Count; i++)
@@ -100,7 +102,7 @@ public class FirebasePlayerInfo
 
         foreach(var data in scores)
         {
-            UnityEngine.Debug.Log($"key = {data.Key}, value = {data.Value}");
+            // UnityEngine.Debug.Log($"key = {data.Key}, value = {data.Value}");
             copy.Add(data.Key,data.Value);
         }
         
@@ -119,7 +121,7 @@ public class FirebasePlayerInfo
         reference.Child(TABLENAME).Child(GetReplacedId(email)).Child(columnName).SetValueAsync(value);
     }
     // Firebase EnterPlayer Get await
-    void SetMyPlayerInfo(string key, object value)
+    void SetPlayerInfo(string key, object value)
     {
         switch(key)
         {
@@ -129,13 +131,12 @@ public class FirebasePlayerInfo
             case "coin" : coin = (long)value; break;
         }
     }
-    public async Task GetPlayer(string email)
+    public void GetPlayer(string email)
     {
         UnityEngine.Debug.Log("await Start");
-        await GetFirebaseDatabase(email);
-        EnterPlayer(email);
+        GetFirebaseDatabase(email);
     }
-    async Task GetFirebaseDatabase(string email) // 그냥 모든 값을 나에게 set한다고 생각하자 근데 update되고 자동으로 해도 되는거잖아;;
+    async void GetFirebaseDatabase(string email) // 그냥 모든 값을 나에게 set한다고 생각하자 근데 update되고 자동으로 해도 되는거잖아;;
     {
         DatabaseReference reference = FirebaseDatabase.DefaultInstance.GetReference(TABLENAME);
         await reference.Child(GetReplacedId(email)).GetValueAsync().ContinueWith(task => 
@@ -153,53 +154,95 @@ public class FirebasePlayerInfo
                 DataSnapshot snapshot = task.Result;
                 foreach(var data in snapshot.Children)
                 {
-                    UnityEngine.Debug.Log($"Key = {data.Key}, Value = {data.Value}");
-                    SetMyPlayerInfo(data.Key,data.Value);
+                    // UnityEngine.Debug.Log($"Key = {data.Key}, Value = {data.Value}");
+                    SetPlayerInfo(data.Key,data.Value);
                 }
             }
         });
+        EnterPlayer(email);
     }
 
     // Firebase DateTime
-    public DateTime GetLastPlayDateTime()
+    public long CalculatorLastPlayTime() // string -> long으로 변환 왜냐 계산 해야됨;;
     {
-        return DateTime.FromBinary(Convert.ToInt64(lastPlayTime));
+        return DateTime.Parse(lastPlayTime).ToBinary();
     }
-    public long GetLastPlayBinaryTime()
+    public DateTime GetLastPlayDateTime() // 이거 바꿔야 됨!! 이 밑으로 전부~
     {
-        return Convert.ToInt64(lastPlayTime);
+        return DateTime.FromBinary(CalculatorLastPlayTime());
     }
-
+    // Set CoinTime
+    public void SetCoinTime(string email, string columnName){
+        long time = addCoinPerDelay - (long)coinDelayTime.Subtract(DateTime.Now).TotalSeconds; // 이거 때문이구나;;
+        UpdateFirebaseDatabase<long>(email,columnName,time);
+    }
     // Enter Player Time Diff or Set coin
-    void EnterPlayer(string email) // 근데 이건 꼭 해야됨
+    public void EnterPlayer(string email) // 근데 이건 꼭 해야됨
     {
         long diffTime = (long)DateTime.Now.Subtract(GetLastPlayDateTime()).TotalSeconds;
+        // UnityEngine.Debug.Log($"diffTime = {diffTime}");
         long receiveCoin = diffTime / addCoinPerDelay * addPerCoin;
         long nmgTime = diffTime % addCoinPerDelay;
 
-        UnityEngine.Debug.Log($"nmgTime = {nmgTime}");
-        UnityEngine.Debug.Log($"receiveCoin = {receiveCoin}");
-        UnityEngine.Debug.Log($"coinTime = {coinTime}");
-
-        if(coin + receiveCoin >= maxCoin)
+        if(receiveCoin + coin >= maxCoin)
         {
             coin = maxCoin;
-            coinTime = addCoinPerDelay;
         }
         else
         {
-            coin += receiveCoin;
-            if(coinTime < nmgTime) // ex > 25 - 15 // 10 - 50 // ㅁㅊ nmgTime이 coinTime보다 크면 코인을 하나 더 줘야한다 ㅋ
+            coin += (receiveCoin * addPerCoin);
+        }
+
+        SetCoinDelayTime(email, nmgTime);
+    }
+    void SetCoinDelayTime(string email, long nmgTime)
+    {
+        long totalTime = coinTime + nmgTime;
+        UnityEngine.Debug.Log($"coinTime Time = {coinTime}");
+        UnityEngine.Debug.Log($"nmgTime Time = {nmgTime}");
+        UnityEngine.Debug.Log($"Total Time = {totalTime}");
+        if(totalTime >= addCoinPerDelay) // ex > 25 - 15 // 10 - 50 // ㅁㅊ nmgTime이 coinTime보다 크면 코인을 하나 더 줘야한다 ㅋ
+        {
+            if(coin + addPerCoin >= maxCoin)
             {
-                coin = coin + addPerCoin >= maxCoin ? maxCoin : coin + addPerCoin;
-                coinTime = addCoinPerDelay - (nmgTime - coinTime);
+                coin = maxCoin;
+                totalTime = addCoinPerDelay;
             }
             else
             {
-                coinTime -= nmgTime;
+                coin += (totalTime /= addCoinPerDelay) * addPerCoin;
+                totalTime %= addCoinPerDelay;
             }
         }
+
+        coinDelayTime = DateTime.Now.AddSeconds(addCoinPerDelay - totalTime);
         UpdateFirebaseDatabase<long>(email,"coin",coin);
-        UpdateFirebaseDatabase<long>(email,"coinTime",coinTime);
+        isLoading = false;
+    }
+    // UpdateCoin
+    public void UpdateCoin(UnityEngine.UI.Text currentPlayTimeText = null, Action callback = null)
+    {
+        if(isLoading) return;
+        if(coin >= maxCoin) 
+        {
+            ResetCoinDelayTime();
+            return;
+        }
+
+        currentPlayTimeText.text = TimeSpan.FromSeconds((coinDelayTime - DateTime.Now).TotalSeconds).ToString("mm':'ss");
+
+        if(coinDelayTime.Subtract(DateTime.Now).TotalSeconds <= 0)
+        {
+            ResetCoinDelayTime();
+            if(callback != null)
+                callback.Invoke();
+
+            UnityEngine.Debug.Log("SameTime");
+        }
+    }
+    // ResetCoinDelayTime
+    public void ResetCoinDelayTime()
+    {
+        coinDelayTime = DateTime.Now.AddSeconds(addCoinPerDelay);
     }
 }

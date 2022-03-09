@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 using Firebase.Database;
 using Firebase.Auth;
@@ -64,8 +63,9 @@ public class DataManager : MonoBehaviour
     }
     public void SetTimes() // 이거 해결해야 함 null reference
     {
-        firebasePlayer.UpdateFirebaseDatabase<string>(auth.CurrentUser.Email,"lastPlayTime",DateTime.Now.ToBinary().ToString());
-        firebasePlayer.UpdateFirebaseDatabase<long>(auth.CurrentUser.Email,"coinTime",firebasePlayer.coinTime);
+        firebasePlayer.SetCoinTime(auth.CurrentUser.Email,"coinTime");
+        firebasePlayer.UpdateFirebaseDatabase<string>(auth.CurrentUser.Email,"lastPlayTime",DateTime.Now.ToString());
+        firebasePlayer.IsLoading(true);
     }
     // sign out
     public void Logout()
