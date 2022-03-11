@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using Firebase.Auth;
 using UnityEngine;
 using UnityEngine.UI;
 using System;
@@ -16,19 +15,18 @@ public class MainMenu : MonoBehaviour
     Text coinTimeText;
     [SerializeField]
     GameObject optionsUI;
-    FirebasePlayerInfo player;
+    TestPlayer player;
 
     // 하.. id랑 pw를 이렇게 계속 받아서 쓰면 안될 것 같은데
     // 아 싱글톤 필요해 이건 나의 데이터가 계속 이리 되면 안됨;;
     void Awake() {
-        player = DataManager.instance.firebasePlayer;
-        DataManager.instance.firebasePlayer.GetPlayer(FirebaseAuth.DefaultInstance.CurrentUser.Email);
+        player = DataManager.instance.player;
     }
 
     void Start() {
         SoundManager.instance.ChangeBGM(EBGMClipType.Main);
 
-        nameText.text = "Name : " + player.nickName;
+        nameText.text = "Name : " + player.GetPlayerData("nickName");
         coinTimeText.text = "00:00";
 
         GameView.ShowFade(new GameFadeOption{
@@ -38,11 +36,21 @@ public class MainMenu : MonoBehaviour
     }
     void Update() {
         coinText.text = $"Coin : {player.coin}";
-        player.UpdateCoin(coinTimeText,() => DataManager.instance.UpdateCoin(player.addPerCoin));
-    }
-    void OnDisable() { // database settimes
-        Debug.Log("OnDisable");
-        DataManager.instance.SetTimes();
+        coinTimeText.text = DataManager.instance.testTime.CountDown();
+        
+        if(player.coin >= DataManager.instance.maxCoin) 
+        {
+            DataManager.instance.testTime.ResetFrontTime(60);
+            return;
+        }
+
+        if(DataManager.instance.testTime.DiffFrontBinaryTime() <= 0)
+        {
+            DataManager.instance.testTime.ResetFrontTime(60);
+            DataManager.instance.UpdateCoin(10);
+            coinText.text = $"Coin : {player.coin}";
+            Debug.Log("SameTime");
+        }
     }
     public void OnClickQuitButton()
     {
@@ -86,9 +94,8 @@ public class MainMenu : MonoBehaviour
             Debug.LogError("check coin");
             return;
         }
-
         DataManager.instance.UpdateCoin(GameVariable.consumCoin * -1);
-        coinText.text = "Coin : " + player.coin;
+        coinText.text = "Coin : " + player.GetPlayerData("coin");
         GameView.ShowFade(new GameFadeOption{
             isFade = true,
             limitedTime = 1f,

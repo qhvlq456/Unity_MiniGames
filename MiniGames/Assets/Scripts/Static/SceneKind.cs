@@ -63,6 +63,10 @@ public class GameOptions
 }
 public class SceneKind : MonoBehaviour
 {
+    public static string[] gameName = new string[]
+    {
+        "Flappy", "Angry", "NightMare", "Omok", "Othello"
+    };
     public static Dictionary<ESceneKind,SceneValue> sceneValue = new Dictionary<ESceneKind, SceneValue>()
     {
         {ESceneKind.Logo, new SceneValue(new GameOptions(ESceneType.Menu,EGameKind.None,EGamePlayType.None),"Logo",0)},

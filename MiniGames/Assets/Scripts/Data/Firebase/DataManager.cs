@@ -1,18 +1,25 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Firebase.Database;
 using Firebase.Auth;
 using System;
+using System.Threading.Tasks;
 public class DataManager : MonoBehaviour
 {
     public static DataManager instance = null;
-    public FirebasePlayerInfo firebasePlayer;
+    public TestPlayer player;
+    public TestTime testTime;
     public FirebaseAuth auth;
-    DatabaseReference reference;
     public readonly string TABLENAME = "PlayerData";
+    public readonly string ADDCOIN = "addCoin";
+    public readonly string ADDCOINPERDELAY = "addCoinPerDelay";
+    public readonly string MAXCOIN = "maxCoin";
+    public readonly long addCoinPerDelay = 60;
+    public readonly long addPerCoin = 10;
+    public readonly long maxCoin = 200;
+    public readonly long defaultScore = 0;
+    
     // construct default value
-
     private void Awake() {
         if(instance == null)
         {
@@ -23,49 +30,78 @@ public class DataManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
-
-        reference = FirebaseDatabase.DefaultInstance.GetReference(TABLENAME);
         auth = FirebaseAuth.DefaultInstance;
     }
     // load
-    public void Load()
+    public async void Load()
     {
-        firebasePlayer = new FirebasePlayerInfo();
-        reference.ValueChanged += OnLoadChanged;
+        player = new TestPlayer(auth.CurrentUser.Email);
+        await player.LoadData();
+        testTime = new TestTime((string)player.GetPlayerData("lastPlayTime"));
+
+        await CalculateTime();
     }
-    void OnLoadChanged(object sender, ValueChangedEventArgs args) // 자주 변화하는 값에 대해 이벤트 핸들러를 건다 // 그니깐 진짜 안에 있지 않아도 하나라도 update하면 그냥 call되는거임
+    async Task CalculateTime()
     {
-        Debug.Log("Call OnLoadChanged!!");
-        string id = firebasePlayer.GetReplacedId(auth.CurrentUser.Email);
-        
-        firebasePlayer.nickName = (string)args.Snapshot.Child(id).Child("nickName").GetValue(true);
-        firebasePlayer.coin = (long)args.Snapshot.Child(id).Child("coin").GetValue(true);
-        firebasePlayer.coinTime = (long)args.Snapshot.Child(id).Child("coinTime").GetValue(true);
-    }
-    // create
-    public void Create(string nickName)
-    {
-        FirebasePlayerInfo newPlayer = new FirebasePlayerInfo();
-        newPlayer.CreatePlayer(auth.CurrentUser.Email, nickName);
-        // 이 다음 load를 진행
-    }
-    public void UpdateCoin(long value)
-    {
-        if(firebasePlayer.coin + value >= firebasePlayer.maxCoin)
+        long totalTime = testTime.DiffLastBinaryTime() + (long)player.GetPlayerData("coinTime");
+
+        long sumCoin = player.coin + (totalTime / addCoinPerDelay * addPerCoin);
+        Debug.Log($"diffTime = {testTime.DiffLastBinaryTime()}");
+        Debug.Log($"coinTime = {(long)player.GetPlayerData("coinTime")}");
+        Debug.Log($"player coin = {player.coin}");
+        Debug.Log($"totalTime = {totalTime}");
+        Debug.Log($"sumCoin = {sumCoin}");
+
+        if(sumCoin >= maxCoin)
         {
-            firebasePlayer.coin = firebasePlayer.maxCoin;
+            player.coin = maxCoin;
+            testTime.ResetFrontTime(addCoinPerDelay);
         }
         else
         {
-            firebasePlayer.coin = firebasePlayer.coin + value;
+            player.coin += (totalTime / addCoinPerDelay * addPerCoin);
+            if(player.coin >= maxCoin)
+            {
+                player.coin = maxCoin;
+                testTime.ResetFrontTime(addCoinPerDelay);
+            }
+            else
+            {
+                testTime.ResetFrontTime(addCoinPerDelay - (totalTime % addCoinPerDelay));
+            }
         }
-        firebasePlayer.UpdateFirebaseDatabase<long>(auth.CurrentUser.Email,"coin",firebasePlayer.coin);
+
+        await player.ParticalSaveData<long>("coin",player.coin);
+        await player.ParticalSaveData<string>("lastPlayTime",DateTime.Now.ToString());
     }
-    public void SetTimes() // 이거 해결해야 함 null reference
+    // create
+    public async void Create(string nickName)
     {
-        firebasePlayer.SetCoinTime(auth.CurrentUser.Email,"coinTime");
-        firebasePlayer.UpdateFirebaseDatabase<string>(auth.CurrentUser.Email,"lastPlayTime",DateTime.Now.ToString());
-        firebasePlayer.IsLoading(true);
+        TestPlayer newPlayer = new TestPlayer(auth.CurrentUser.Email,SetValue(nickName));
+        await newPlayer.SaveData();
+        // 이 다음 load를 진행
+    }
+    public async Task SetTimes() // 이거 해결해야 함 null reference // 저장하고 나가야됨;;ㅋㅋ
+    {
+        player.SetPlayerData("lastPlayTime",DateTime.Now.ToString());
+
+        if(player.coin >= maxCoin)
+        {
+            player.SetPlayerData("coinTime",0);
+        }
+        else
+        {
+            if(testTime.DiffFrontBinaryTime() >= 0)
+            {
+                player.SetPlayerData("coinTime",addCoinPerDelay - testTime.DiffFrontBinaryTime());
+            }
+            else
+            {
+                player.SetPlayerData("coinTime",addCoinPerDelay);
+            }
+        }
+
+        await player.SaveData();
     }
     // sign out
     public void Logout()
@@ -73,12 +109,39 @@ public class DataManager : MonoBehaviour
         Quit();
         auth.SignOut();
     }
-    public void Quit() // 여기서 save작업 완료 해야함
+    public async void Quit() // 여기서 save작업 완료 해야함
     {
-        SetTimes();
-        reference.ValueChanged -= OnLoadChanged;
-        firebasePlayer = null;
-        // 아 어차피 반환값이 task니깐 await가 가능한거구나 // 이것도 그냥 update만 하고 가는거네
+        await SetTimes();
+        player = null;
+        testTime = null;
     }
-    
+    public async void UpdateCoin(long value)
+    {
+        player.coin += value;
+        
+        await player.ParticalSaveData<long>("coin",player.coin);
+    }
+    // test
+    public Dictionary<string,object> SetValue(string nickName = null)
+    {
+        Dictionary<string,object> gameData = new Dictionary<string, object>();
+
+        gameData.Add("nickName", nickName == null ? "" : nickName);
+        gameData.Add("lastPlayTime",DateTime.Now.ToString());
+        gameData.Add("coinTime",0);
+        gameData.Add("coin",maxCoin);
+
+        for(int i = 0; i < SceneKind.sceneValue.Count; i++)
+        {
+            EGameKind kind = SceneKind.sceneValue[(ESceneKind)i].gameOptions.gameKind;
+            EGamePlayType playType = SceneKind.sceneValue[(ESceneKind)i].gameOptions.gamePlayType;
+            if(kind == EGameKind.BoardGame && playType == EGamePlayType.Multi)
+                gameData.Add(SceneKind.sceneValue[(ESceneKind)i].sceneName,"0/0");
+            else if(kind == EGameKind.None || playType == EGamePlayType.None) continue;
+            else
+                gameData.Add(SceneKind.sceneValue[(ESceneKind)i].sceneName,defaultScore);
+        }
+
+        return gameData;
+    }
 }

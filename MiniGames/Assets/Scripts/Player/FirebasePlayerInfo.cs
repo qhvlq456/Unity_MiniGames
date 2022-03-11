@@ -8,14 +8,23 @@ using System;
 [Serializable]
 public class FirebasePlayerInfo
 {
+    public string email;
     public string nickName;
     public string lastPlayTime;
     public long coinTime;
     public long coin;
     bool isLoading = true;
     DateTime coinDelayTime; // coinDelay를 더한 시간
-    DateTime currentTime; // 현재 시간
     Dictionary<string,object> scores = new Dictionary<string, object>();
+    // Set Dictionary Scores
+    public void SetScore(string key, object value)
+    {
+        scores[key] = value;
+    }
+    public object GetScore(string key)
+    {
+        return scores[key];
+    }
     // const coin key
     public readonly string ADDCOIN = "addCoin";
     public readonly string ADDCOINPERDELAY = "addCoinPerDelay";
@@ -52,25 +61,17 @@ public class FirebasePlayerInfo
         isLoading = value;
     }
     // id
-    public string GetReplacedId(string email)
+    public string GetReplacedId()
     {
         string _id = email.Replace('@',' ');
         _id = _id.Replace('.',' ');
         return _id;
     }
-    // Set Dictionary Scores
-    public void SetScore(string key, object value)
-    {
-        scores[key] = value;
-    }
-    public object GetScore(string key)
-    {
-        return scores[key];
-    }
     // Firebase Set Create Id 
     public void CreatePlayer(string email, string nickName)
     {
         DatabaseReference reference = FirebaseDatabase.DefaultInstance.RootReference;
+        this.email = email;
         this.nickName = nickName;
         this.lastPlayTime = DateTime.Now.ToString();
         this.coinTime = 0;
@@ -87,7 +88,7 @@ public class FirebasePlayerInfo
             else
                 scores.Add(SceneKind.sceneValue[(ESceneKind)i].sceneName,defaultScore);
         }
-        reference.Child(TABLENAME).Child(GetReplacedId(email)).UpdateChildrenAsync(PlayerToDictionary());
+        reference.Child(TABLENAME).Child(GetReplacedId()).UpdateChildrenAsync(PlayerToDictionary());
     }
 
     // ToDictionary and FirebasePlayerInfo
@@ -118,7 +119,19 @@ public class FirebasePlayerInfo
     public void UpdateFirebaseDatabase<T>(string email, string columnName, T value)
     {
         DatabaseReference reference = FirebaseDatabase.DefaultInstance.RootReference;
-        reference.Child(TABLENAME).Child(GetReplacedId(email)).Child(columnName).SetValueAsync(value);
+        reference.Child(TABLENAME).Child(GetReplacedId()).Child(columnName).SetValueAsync(value);
+    }
+    public void UpdateCoin(long value)
+    {
+        if(coin + value >= maxCoin)
+        {
+            coin = maxCoin;
+        }
+        else
+        {
+            coin = coin + value;
+        }
+        UpdateFirebaseDatabase<long>(email,"coin",coin);
     }
     // Firebase EnterPlayer Get await
     void SetPlayerInfo(string key, object value)
@@ -131,15 +144,14 @@ public class FirebasePlayerInfo
             case "coin" : coin = (long)value; break;
         }
     }
-    public void GetPlayer(string email)
+    public void GetPlayer()
     {
-        UnityEngine.Debug.Log("await Start");
-        GetFirebaseDatabase(email);
+        GetFirebaseDatabase();
     }
-    async void GetFirebaseDatabase(string email) // 그냥 모든 값을 나에게 set한다고 생각하자 근데 update되고 자동으로 해도 되는거잖아;;
+    async void GetFirebaseDatabase() // 그냥 모든 값을 나에게 set한다고 생각하자 근데 update되고 자동으로 해도 되는거잖아;;
     {
         DatabaseReference reference = FirebaseDatabase.DefaultInstance.GetReference(TABLENAME);
-        await reference.Child(GetReplacedId(email)).GetValueAsync().ContinueWith(task => 
+        await reference.Child(GetReplacedId()).GetValueAsync().ContinueWith(task => 
         {
             if(task.IsFaulted)
             {
@@ -159,7 +171,7 @@ public class FirebasePlayerInfo
                 }
             }
         });
-        EnterPlayer(email);
+        EnterPlayer();
     }
 
     // Firebase DateTime
@@ -172,12 +184,12 @@ public class FirebasePlayerInfo
         return DateTime.FromBinary(CalculatorLastPlayTime());
     }
     // Set CoinTime
-    public void SetCoinTime(string email, string columnName){
+    public void SetCoinTime(string columnName){
         long time = addCoinPerDelay - (long)coinDelayTime.Subtract(DateTime.Now).TotalSeconds; // 이거 때문이구나;;
         UpdateFirebaseDatabase<long>(email,columnName,time);
     }
     // Enter Player Time Diff or Set coin
-    public void EnterPlayer(string email) // 근데 이건 꼭 해야됨
+    void EnterPlayer() // 근데 이건 꼭 해야됨
     {
         long diffTime = (long)DateTime.Now.Subtract(GetLastPlayDateTime()).TotalSeconds;
         // UnityEngine.Debug.Log($"diffTime = {diffTime}");
@@ -193,9 +205,9 @@ public class FirebasePlayerInfo
             coin += (receiveCoin * addPerCoin);
         }
 
-        SetCoinDelayTime(email, nmgTime);
+        SetCoinDelayTime(nmgTime);
     }
-    void SetCoinDelayTime(string email, long nmgTime)
+    void SetCoinDelayTime(long nmgTime)
     {
         long totalTime = coinTime + nmgTime;
         UnityEngine.Debug.Log($"coinTime Time = {coinTime}");

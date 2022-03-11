@@ -19,7 +19,6 @@ public class GameVariable : MonoBehaviour
     public static float speed = 13.6f;
     public static float fadeTime = 2.0f;
     public static int consumCoin = 20;
-    public static int addCoin = 10;
     
     // board game
     public static int sequenceNum = 0;
