@@ -81,7 +81,7 @@ public class HorizontalGame : GameBase
     {
         UpdateTime();
     }
-    public virtual void EndCycle() // flappy는 아에 끝나는거고 angry는 다시 첨으로 가는 것;;
+    public virtual void EndCycle() 
     {
         GameOver();
     }        

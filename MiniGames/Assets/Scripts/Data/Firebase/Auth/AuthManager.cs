@@ -131,10 +131,17 @@ public class AuthManager : MonoBehaviour
             }
         });
     }
-    public void OnClickConfirmNickName() // nickname중복 확인
+    public async void OnClickConfirmNickName() // nickname중복 확인
     {
+        if(string.IsNullOrEmpty(nickNameInput.text)) 
+        {
+            type = EAuthError.Empty;
+            CreateAuthAlert();
+            return;
+        }
+
         StartCoroutine(WaitAsync());
-        FirebaseDatabase.DefaultInstance.GetReference(DataManager.instance.tableName).Child("PlayerData").GetValueAsync().ContinueWith(task =>
+        await FirebaseDatabase.DefaultInstance.GetReference(DataManager.instance.tableName).GetValueAsync().ContinueWith(task =>
         {
             if(task.IsFaulted)
             {
@@ -153,6 +160,8 @@ public class AuthManager : MonoBehaviour
                     IDictionary value = (IDictionary)data.Value;
                     if((string)value[DataManager.instance.c_Nick] == nickNameInput.text)
                     {
+                        Debug.LogError($"Same nick = {value[DataManager.instance.c_Nick]}, current nick = {nickNameInput.text}");
+                        nickNameInput.text = "";
                         isOverlap = true;
                         type = EAuthError.Exist;
                         break;

@@ -29,7 +29,7 @@ public class ErrorKind : MonoBehaviour
     {
         {EAuthError.None,"None"},
         {EAuthError.NotEqual,"비밀번호 확인과 일치하지 않습니다 다시한번 확인해 주세요!"},
-        {EAuthError.Empty,"ID 또는 PW를 입력해 주세요!!"},
+        {EAuthError.Empty,"닉네임을 입력해주세요."},
         {EAuthError.EmptyConfirm,"글자를 입력해주세요!"},
         {EAuthError.AlreadyEnter,"이미 접속중인 아이디입니다.."},
         {EAuthError.Success,"로그인에 성공하였습니다!!"},

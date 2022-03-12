@@ -49,7 +49,7 @@ public class NetworkOthelloPlayer : BasePlayer
         if(GameManager.GetTurn() != m_turn) return;
         if(!pv.IsMine) return;        
 
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
         {
             IsMouseButtonDown();
             if( r < 0 || c < 0) return;

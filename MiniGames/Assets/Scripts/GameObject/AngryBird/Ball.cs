@@ -96,7 +96,7 @@ public class Ball : MonoBehaviour
     {
         if (isClick) return;
 
-        SoundManager.instance.PlayClip(EEffactClipType.Angry);
+        // SoundManager.instance.PlayClip(EEffactClipType.Angry);
 
         isClick = true;
         _rigid.bodyType = RigidbodyType2D.Dynamic; // 이런 타입도 enum으로 존재하는구나
