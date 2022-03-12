@@ -32,7 +32,7 @@ public class ErrorKind : MonoBehaviour
         {EAuthError.Empty,"닉네임을 입력해주세요."},
         {EAuthError.EmptyConfirm,"글자를 입력해주세요!"},
         {EAuthError.AlreadyEnter,"이미 접속중인 아이디입니다.."},
-        {EAuthError.Success,"로그인에 성공하였습니다!!"},
+        {EAuthError.Success,"닉네임 생성이 완료되었습니다!!"},
         {EAuthError.Fail,"아이디를 확인해 주세요.."},
         {EAuthError.Create,"아이디를 성공적으로 만들었습니다"},
         {EAuthError.NotCreate,"아이디를 만들지 못하였습니다 다시한번 확인해 주세요.."},
