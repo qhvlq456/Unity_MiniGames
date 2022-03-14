@@ -40,7 +40,7 @@ public class LocalResult : Result
     {
         List<KeyValuePair<string,object>> list = new List<KeyValuePair<string, object>>();
 
-        if(GameManager.score > (long)DataManager.instance.player.GetScore(gameName))
+        if(GameManager.score > (long)DataManager.instance.player.GetPlayerData(gameName))
         {
             Victory(GameManager.score,list);
         }
@@ -88,14 +88,14 @@ public class LocalResult : Result
             body += string.Format("{0} : {1}\n",enemyNames[i],NightmareManager.Manager.enemyKills[i]);
         }
 
-        if(GameManager.score > (long)DataManager.instance.player.GetScore(gameName))
+        if(GameManager.score > (long)DataManager.instance.player.GetPlayerData(gameName))
         {
             body += $"Total = {NightmareManager.Manager.score} \n My Best Score {NightmareManager.Manager.score}";
             Victory(GameManager.score);
         }
         else
         {
-            long value = (long)DataManager.instance.player.GetScore(gameName);
+            long value = (long)DataManager.instance.player.GetPlayerData(gameName);
             body += $"Total = {NightmareManager.Manager.score} \n My Best Score {value}";
             Lose();
         }

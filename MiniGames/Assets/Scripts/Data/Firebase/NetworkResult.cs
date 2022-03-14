@@ -28,7 +28,7 @@ public class NetworkResult : Result
                 break;
             }
         }
-        string record = (string)DataManager.instance.player.GetScore(gameName);
+        string record = (string)DataManager.instance.player.GetPlayerData(gameName);
         string[] newRecord = record.Split(new char[] {'/'}); // front victory, back defeat
 
         if((int)m_Player.playerType == victory)

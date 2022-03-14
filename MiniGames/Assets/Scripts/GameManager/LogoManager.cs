@@ -9,7 +9,7 @@ public class LogoManager : MonoBehaviour
         subtitleText = GameObject.Find("SubTitleText").GetComponent<Text>();
         versionText = GameObject.Find("VersionText").GetComponent<Text>();
 
-        subtitleText.text = $"Press On your key";
+        subtitleText.text = $"Press on your key";
     }
     private void Start() {
         SoundManager.instance.ChangeBGM(EBGMClipType.Logo);
