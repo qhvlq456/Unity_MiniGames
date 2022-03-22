@@ -42,7 +42,7 @@ public class GameChattingManager : ChattingManager
     {
         chattingButton.interactable = false;
         
-        Animator anim = chatting.transform.GetChild(0).GetComponent<Animator>();
+        Animator anim = chatting.GetComponent<Animator>();
         anim.SetTrigger("isClose");
 
         yield return new WaitForSeconds(anim.GetCurrentAnimatorStateInfo(0).length);

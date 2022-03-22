@@ -14,6 +14,7 @@ public class NetworkOmokPlayer : BasePlayer
     public PhotonView pv;
     OmokManager GameManager;
     string stonePath = "Network/NetworkOmokStone";
+    int pointerId;
 
     void Awake()
     {
@@ -43,7 +44,13 @@ public class NetworkOmokPlayer : BasePlayer
         if(GameManager.isGameOver) return;
         if(GameManager.GetTurn() != m_turn) return;
 
-        if(Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
+        #if UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBPLAYER
+        pointerId = -1;
+        #elif UNITY_IOS || UNITY_ANDROID || UNITY_WP8 || UNITY_IPHONE
+        pointerId = 0;
+        #endif
+
+        if(Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject(pointerId))
         {
             IsMouseButtonDown();
 

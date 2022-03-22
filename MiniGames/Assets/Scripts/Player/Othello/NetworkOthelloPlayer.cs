@@ -12,7 +12,7 @@ public class NetworkOthelloPlayer : BasePlayer
     public PhotonView pv;
     OthelloManager GameManager;
     string stonePath = "Network/NetworkOthelloStone";
-    
+    int pointerId;
     void Awake()
     {
         GameManager = GameObject.Find("GameManager").GetComponent<OthelloManager>(); // 이걸 못 찾을 일이 없을텐데;;
@@ -49,8 +49,15 @@ public class NetworkOthelloPlayer : BasePlayer
         if(GameManager.GetTurn() != m_turn) return;
         if(!pv.IsMine) return;        
 
+        #if UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBPLAYER
+        pointerId = -1;
+        #elif UNITY_IOS || UNITY_ANDROID || UNITY_WP8 || UNITY_IPHONE
+        pointerId = 0;
+        #endif
+
         if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
         {
+            Debug.Log("click");
             IsMouseButtonDown();
             if( r < 0 || c < 0) return;
             if (!GameManager.IsEmpty(r,c))

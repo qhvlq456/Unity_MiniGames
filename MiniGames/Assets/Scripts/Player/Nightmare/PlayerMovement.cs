@@ -34,8 +34,15 @@ public class PlayerMovement : MonoBehaviour
     private void FixedUpdate() {
         if(NightmareManager.Manager.isGameOver) return;
 
-        if(isRun)
+        if(isRun && runSlider.value > 0)
+        {
+            applySpeed = runSpeed;
             runSlider.value -= consumRun;
+        }
+        else
+        {
+            applySpeed = speed;
+        }
 
         float h = jValue.jVector.x;
         float v = jValue.jVector.y;
@@ -107,19 +114,11 @@ public class PlayerMovement : MonoBehaviour
     }
     public void IsRun()
     {
-        if(runSlider.value <= 0) 
-        {
-            ResetSpeed();
-            return;
-        }
-
         isRun = true;
-        applySpeed = runSpeed;
     }
     public void ResetSpeed()
     {
         isRun = false;
-        applySpeed = speed;
     }
     void Animating(float h, float v)
     {
