@@ -8,7 +8,7 @@ public class DataManager : MonoBehaviour
 {
     public static DataManager instance = null;
     public TestPlayer player;
-    public TestTime testTime;
+    public DateTime frontTime;
     public FirebaseAuth auth;
     public readonly string TABLENAME = "PlayerData";
     public readonly string ADDCOIN = "addCoin";
@@ -37,25 +37,28 @@ public class DataManager : MonoBehaviour
     {
         player = new TestPlayer(auth.CurrentUser.Email);
         await player.LoadData();
-        testTime = new TestTime((string)player.GetPlayerData("lastPlayTime"));
 
-        await CalculateTime();
+        // await LoadCoin();
     }
-    async Task CalculateTime()
+    public async Task LoadCoin()
     {
-        long totalTime = testTime.DiffLastBinaryTime() + (long)player.GetPlayerData("coinTime");
+        DateTime lastPlayTime = DateTime.Parse((string)player.GetPlayerData("lastPlayTime"));
+        long diffTime = (long)DateTime.Now.Subtract(lastPlayTime).TotalSeconds;
 
-        long sumCoin = player.coin + (totalTime / addCoinPerDelay * addPerCoin);
-        Debug.Log($"diffTime = {testTime.DiffLastBinaryTime()}");
+        long totalTime = diffTime + (long)player.GetPlayerData("coinTime");
+
+        long addCoin = player.coin + (totalTime / addCoinPerDelay * addPerCoin);
+
+        Debug.Log($"diffTime = {diffTime}");
         Debug.Log($"coinTime = {(long)player.GetPlayerData("coinTime")}");
         Debug.Log($"player coin = {player.coin}");
         Debug.Log($"totalTime = {totalTime}");
-        Debug.Log($"sumCoin = {sumCoin}");
+        Debug.Log($"sumCoin = {addCoin}");
 
-        if(sumCoin >= maxCoin)
+        if(addCoin >= maxCoin)
         {
             player.coin = maxCoin;
-            testTime.ResetFrontTime(addCoinPerDelay);
+            frontTime = DateTime.Now.AddSeconds(addCoinPerDelay);
         }
         else
         {
@@ -63,16 +66,28 @@ public class DataManager : MonoBehaviour
             if(player.coin >= maxCoin)
             {
                 player.coin = maxCoin;
-                testTime.ResetFrontTime(addCoinPerDelay);
+                frontTime = DateTime.Now.AddSeconds(addCoinPerDelay);
             }
             else
             {
-                testTime.ResetFrontTime(addCoinPerDelay - (totalTime % addCoinPerDelay));
+                frontTime = DateTime.Now.AddSeconds(addCoinPerDelay - (totalTime % addCoinPerDelay));
             }
         }
 
         await player.ParticalSaveData<long>("coin",player.coin);
         await player.ParticalSaveData<string>("lastPlayTime",DateTime.Now.ToString());
+    }
+    public string VisibleCoinTime()
+    {
+        return TimeSpan.FromSeconds(LeftCoinTime()).ToString("mm':'ss");
+    }
+    public long LeftCoinTime()
+    {
+        return (long)frontTime.Subtract(DateTime.Now).TotalSeconds;
+    }
+    public void ResetCoinTime()
+    {
+        frontTime = DateTime.Now.AddSeconds(addCoinPerDelay);
     }
     // create
     public async void Create(string nickName)
@@ -85,15 +100,16 @@ public class DataManager : MonoBehaviour
     {
         player.SetPlayerData("lastPlayTime",DateTime.Now.ToString());
 
+        long diffTime = LeftCoinTime();
         if(player.coin >= maxCoin)
         {
             player.SetPlayerData("coinTime",0);
         }
         else
         {
-            if(testTime.DiffFrontBinaryTime() >= 0)
+            if(diffTime >= 0)
             {
-                player.SetPlayerData("coinTime",addCoinPerDelay - testTime.DiffFrontBinaryTime());
+                player.SetPlayerData("coinTime",addCoinPerDelay - diffTime);
             }
             else
             {
@@ -113,7 +129,7 @@ public class DataManager : MonoBehaviour
     {
         await SetTimes();
         player = null;
-        testTime = null;
+        // testTime = null;
     }
     public async void UpdateCoin(long value)
     {

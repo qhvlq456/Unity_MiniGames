@@ -19,8 +19,9 @@ public class MainMenu : MonoBehaviour
 
     // 하.. id랑 pw를 이렇게 계속 받아서 쓰면 안될 것 같은데
     // 아 싱글톤 필요해 이건 나의 데이터가 계속 이리 되면 안됨;;
-    void Awake() {
+    async void Awake() {
         player = DataManager.instance.player;
+        await DataManager.instance.LoadCoin();
     }
 
     void Start() {
@@ -36,21 +37,24 @@ public class MainMenu : MonoBehaviour
     }
     void Update() {
         coinText.text = $"Coin : {player.coin}";
-        coinTimeText.text = DataManager.instance.testTime.CountDown();
+        coinTimeText.text = DataManager.instance.VisibleCoinTime();
         
         if(player.coin >= DataManager.instance.maxCoin) 
         {
-            DataManager.instance.testTime.ResetFrontTime(60);
+            DataManager.instance.ResetCoinTime();
             return;
         }
 
-        if(DataManager.instance.testTime.DiffFrontBinaryTime() <= 0)
+        if(DataManager.instance.LeftCoinTime() <= 0)
         {
-            DataManager.instance.testTime.ResetFrontTime(60);
+            DataManager.instance.ResetCoinTime();
             DataManager.instance.UpdateCoin(10);
             coinText.text = $"Coin : {player.coin}";
             Debug.Log("SameTime");
         }
+    }
+    async void OnDisable() {
+        await DataManager.instance.SetTimes();
     }
     public void OnClickQuitButton()
     {
