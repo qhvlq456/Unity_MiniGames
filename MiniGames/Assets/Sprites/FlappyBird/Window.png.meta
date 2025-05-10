@@ -228,7 +228,7 @@ TextureImporter:
       213: 21300148
     second: Window_74
   externalObjects: {}
-  serializedVersion: 10
+  serializedVersion: 12
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -245,9 +245,12 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
+    flipGreenChannel: 0
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -257,8 +260,8 @@ TextureImporter:
   textureSettings:
     serializedVersion: 2
     filterMode: 0
-    aniso: -1
-    mipBias: -100
+    aniso: 1
+    mipBias: 0
     wrapU: 1
     wrapV: 1
     wrapW: 1
@@ -279,9 +282,15 @@ TextureImporter:
   textureType: 8
   textureShape: 1
   singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
   maxTextureSizeSet: 0
   compressionQualitySet: 0
   textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 1
+  swizzle: 50462976
+  cookieLightType: 1
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
@@ -293,6 +302,7 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 1
   - serializedVersion: 3
@@ -305,6 +315,7 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 1
   - serializedVersion: 3
@@ -317,6 +328,33 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: iPhone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: Server
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 1
   spriteSheet:
@@ -1907,9 +1945,84 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-  spritePackingTag: 
+    nameFileIdTable:
+      Window_0: 21300000
+      Window_1: 21300002
+      Window_10: 21300020
+      Window_11: 21300022
+      Window_12: 21300024
+      Window_13: 21300026
+      Window_14: 21300028
+      Window_15: 21300030
+      Window_16: 21300032
+      Window_17: 21300034
+      Window_18: 21300036
+      Window_19: 21300038
+      Window_2: 21300004
+      Window_20: 21300040
+      Window_21: 21300042
+      Window_22: 21300044
+      Window_23: 21300046
+      Window_24: 21300048
+      Window_25: 21300050
+      Window_26: 21300052
+      Window_27: 21300054
+      Window_28: 21300056
+      Window_29: 21300058
+      Window_3: 21300006
+      Window_30: 21300060
+      Window_31: 21300062
+      Window_32: 21300064
+      Window_33: 21300066
+      Window_34: 21300068
+      Window_35: 21300070
+      Window_36: 21300072
+      Window_37: 21300074
+      Window_38: 21300076
+      Window_39: 21300078
+      Window_4: 21300008
+      Window_40: 21300080
+      Window_41: 21300082
+      Window_42: 21300084
+      Window_43: 21300086
+      Window_44: 21300088
+      Window_45: 21300090
+      Window_46: 21300092
+      Window_47: 21300094
+      Window_48: 21300096
+      Window_49: 21300098
+      Window_5: 21300010
+      Window_50: 21300100
+      Window_51: 21300102
+      Window_52: 21300104
+      Window_53: 21300106
+      Window_54: 21300108
+      Window_55: 21300110
+      Window_56: 21300112
+      Window_57: 21300114
+      Window_58: 21300116
+      Window_59: 21300118
+      Window_6: 21300012
+      Window_60: 21300120
+      Window_61: 21300122
+      Window_62: 21300124
+      Window_63: 21300126
+      Window_64: 21300128
+      Window_65: 21300130
+      Window_66: 21300132
+      Window_67: 21300134
+      Window_68: 21300136
+      Window_69: 21300138
+      Window_7: 21300014
+      Window_70: 21300140
+      Window_71: 21300142
+      Window_72: 21300144
+      Window_73: 21300146
+      Window_74: 21300148
+      Window_8: 21300016
+      Window_9: 21300018
+  mipmapLimitGroupName: 
   pSDRemoveMatte: 0
-  pSDShowRemoveMatteOption: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 

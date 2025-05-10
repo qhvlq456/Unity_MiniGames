@@ -6,6 +6,8 @@ using GooglePlayGames;
 using GooglePlayGames.BasicApi;
 using Firebase.Auth;
 using Firebase.Database;
+using System.Threading.Tasks;
+
 public class AuthManager : MonoBehaviour
 {
     [Header("Firebase Connection UI")]
@@ -64,9 +66,10 @@ public class AuthManager : MonoBehaviour
     // FirebaseAuth를 통해 FirebaseUser를 얻고난 후 User의 UID를 활용할 것이다
     IEnumerator TryFirebaseLogin()
     {
-        while(string.IsNullOrEmpty(((PlayGamesLocalUser)Social.localUser).GetIdToken()))
-            yield return null;
-        string idToken = ((PlayGamesLocalUser)Social.localUser).GetIdToken();
+        //while(string.IsNullOrEmpty(((PlayGamesLocalUser)Social.localUser).GetIdToken()))
+        //    yield return null;
+        yield return null;
+        string idToken = Social.localUser.id;
 
         Credential credential = GoogleAuthProvider.GetCredential(idToken,null);
         
@@ -133,7 +136,7 @@ public class AuthManager : MonoBehaviour
     }
     public async void OnClickConfirmNickName() // nickname중복 확인
     {
-        if(string.IsNullOrEmpty(nickNameInput.text)) 
+        if (string.IsNullOrEmpty(nickNameInput.text))
         {
             type = EAuthError.Empty;
             CreateAuthAlert();
@@ -143,22 +146,22 @@ public class AuthManager : MonoBehaviour
         StartCoroutine(WaitAsync());
         await FirebaseDatabase.DefaultInstance.GetReference(DataManager.instance.tableName).GetValueAsync().ContinueWith(task =>
         {
-            if(task.IsFaulted)
+            if (task.IsFaulted)
             {
                 return;
             }
-            if(task.IsCanceled)
+            if (task.IsCanceled)
             {
                 return;
             }
-            if(task.IsCompleted)
+            if (task.IsCompleted)
             {
                 bool isOverlap = false;
                 DataSnapshot snapshot = task.Result;
-                foreach(var data in snapshot.Children)
+                foreach (var data in snapshot.Children)
                 {
                     IDictionary value = (IDictionary)data.Value;
-                    if((string)value[DataManager.instance.c_Nick] == nickNameInput.text)
+                    if ((string)value[DataManager.instance.c_Nick] == nickNameInput.text)
                     {
                         Debug.LogError($"Same nick = {value[DataManager.instance.c_Nick]}, current nick = {nickNameInput.text}");
                         nickNameInput.text = "";
@@ -168,7 +171,7 @@ public class AuthManager : MonoBehaviour
                     }
                 }
 
-                if(!isOverlap)
+                if (!isOverlap)
                 {
                     type = EAuthError.Success;
                     DataManager.instance.Create(nickNameInput.text);
@@ -179,6 +182,7 @@ public class AuthManager : MonoBehaviour
             }
         });
     }
+
     public void OnClickInCancelAnim()
     {
         StartCoroutine(AuthCloseDelay(inAnim,false));
