@@ -11,7 +11,6 @@ public class Repeat : MonoBehaviour
     direction dir;
     StartRepeat startrepeat;
     Vector2 setStartpos;
-    public int length;
     public float boxSize { get; set; } // 제일 첫 빠따
     int backgroundNum; // default value = 2;
     
@@ -34,7 +33,7 @@ public class Repeat : MonoBehaviour
 
     void Left() // Func Mount alpha
     {
-        if (transform.position.x < -boxSize * length)
+        if (transform.position.x < -boxSize)
         {
             transform.position = (Vector2)transform.position + setStartpos;
         }
@@ -42,7 +41,7 @@ public class Repeat : MonoBehaviour
     }
     void Right() // Func Mount alpha2
     {
-        if (transform.position.x > boxSize * length)
+        if (transform.position.x > boxSize)
         {
             transform.position = (Vector2)transform.position + setStartpos;
         }

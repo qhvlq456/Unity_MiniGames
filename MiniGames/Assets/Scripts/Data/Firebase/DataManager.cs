@@ -9,13 +9,12 @@ public class DataManager : MonoBehaviour
 {
     public static DataManager instance = null;
     public PlayerInfo player = null;
-    DateTime frontTime;
+    public CalculatorTime time;
     public readonly string tableName = "PlayerData";
     public readonly string c_Nick = "nickName";
     public readonly string c_Coin = "coin";
     public readonly string c_CoinTime = "coinTime";
     public readonly string c_LastTime = "lastPlayTime";
-    public readonly long consumCoin = 20;
     public readonly long addCoinPerDelay = 60;
     public readonly long addPerCoin = 10;
     public readonly long maxCoin = 200;
@@ -35,15 +34,13 @@ public class DataManager : MonoBehaviour
     public async void Load()
     {   
         string uid = Auth.DefaultInstance.CurrentUser.UserId;
-        player = new PlayerInfo(uid, SetValue());
-        
+        if(player.uid == "" || player.uid == null)
+        {
+            player = new PlayerInfo(uid, SetValue());
+            time = new CalculatorTime();
+        }
         await player.LoadData();
-    }
-    public async void Create(string nickName)
-    {
-        PlayerInfo newPlayer = new PlayerInfo(Auth.DefaultInstance.CurrentUser.UserId, SetValue(nickName));
-        await newPlayer.SaveData();
-        // 이 다음 load를 진행
+        await SetLoadedCoin();
     }
     public Dictionary<string,object> SetValue(string nickName = null)
     {
@@ -68,25 +65,23 @@ public class DataManager : MonoBehaviour
 
         return newDictionary;
     }
-    public async Task LoadCoin()
+    public async Task SetLoadedCoin()
     {
-        DateTime lastPlayTime = DateTime.Parse((string)player.GetPlayerData(c_LastTime));
-        long diffTime = (long)DateTime.Now.Subtract(lastPlayTime).TotalSeconds;
-
+        long lastPlayTime =  CalculatorTime.GetSecondTime(CalculatorTime.GetDateTime((string)player.GetPlayerData(c_LastTime)));
+        long diffTime = (long)DateTime.Now.TimeOfDay.TotalSeconds - lastPlayTime;
         long totalTime = diffTime + (long)player.GetPlayerData(c_CoinTime);
 
-        long addCoin = player.coin + (totalTime / addCoinPerDelay * addPerCoin);
-
-        Debug.Log($"diffTime = {diffTime}");
+        long sumCoin = player.coin + (totalTime / addCoinPerDelay * addPerCoin);
+        Debug.Log($"lastPlayTime = {diffTime}");
         Debug.Log($"coinTime = {(long)player.GetPlayerData("coinTime")}");
         Debug.Log($"player coin = {player.coin}");
         Debug.Log($"totalTime = {totalTime}");
-        Debug.Log($"sumCoin = {addCoin}");
+        Debug.Log($"sumCoin = {sumCoin}");
 
-        if(addCoin >= maxCoin)
+        if(sumCoin >= maxCoin)
         {
             player.coin = maxCoin;
-            frontTime = DateTime.Now.AddSeconds(addCoinPerDelay);
+            time.AddFrontTime(addCoinPerDelay);
         }
         else
         {
@@ -94,43 +89,36 @@ public class DataManager : MonoBehaviour
             if(player.coin >= maxCoin)
             {
                 player.coin = maxCoin;
-                frontTime = DateTime.Now.AddSeconds(addCoinPerDelay);
+                time.AddFrontTime(addCoinPerDelay);
             }
             else
             {
-                frontTime = DateTime.Now.AddSeconds(addCoinPerDelay - (totalTime % addCoinPerDelay));
+                time.AddFrontTime(addCoinPerDelay - (totalTime % addCoinPerDelay));
             }
         }
 
         await player.ParticalSaveData<long>(c_Coin,player.coin);
         await player.ParticalSaveData<string>(c_LastTime,DateTime.Now.ToString());
     }
-    public string VisibleCoinTime()
+    public async void Create(string nickName)
     {
-        return TimeSpan.FromSeconds(LeftCoinTime()).ToString("mm':'ss");
-    }
-    public long LeftCoinTime()
-    {
-        return (long)frontTime.Subtract(DateTime.Now).TotalSeconds;
-    }
-    public void ResetCoinTime()
-    {
-        frontTime = DateTime.Now.AddSeconds(addCoinPerDelay);
+        PlayerInfo newPlayer = new PlayerInfo(Auth.DefaultInstance.CurrentUser.UserId, SetValue(nickName));
+        await newPlayer.SaveData();
+        // 이 다음 load를 진행
     }
     public async Task SetTimes() // 여기가 문제임;;
     {
         player.SetPlayerData(c_LastTime,DateTime.Now.ToString());
 
-        long diffTime = LeftCoinTime();
         if(player.coin >= maxCoin)
         {
             player.SetPlayerData(c_CoinTime,0);
         }
         else
         {
-            if(diffTime >= 0)
+            if(time.DiffSecondTime() >= 0)
             {
-                player.SetPlayerData(c_CoinTime,addCoinPerDelay - diffTime);
+                player.SetPlayerData(c_CoinTime,addCoinPerDelay - time.DiffSecondTime());
             }
             else
             {
@@ -147,7 +135,10 @@ public class DataManager : MonoBehaviour
     }
     public void UpdateCoin(long value)
     {
-        Task.Run(async () =>  await player.ParticalSaveData<long>(c_Coin, player.coin + value));
+        long coin = player.coin;
+        coin += value;
+        
+        Task.Run(async () =>  await player.ParticalSaveData<long>(c_Coin, coin));
     }
     // logout
     public async void Logout()
@@ -159,6 +150,7 @@ public class DataManager : MonoBehaviour
     public async Task GameQuit()
     {
         await SetTimes();
+        time = null;
         player = null;
     }
     void OnApplicationQuit() {

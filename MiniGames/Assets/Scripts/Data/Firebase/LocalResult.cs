@@ -28,7 +28,7 @@ public class LocalResult : Result
 
     void RendererButton()
     {
-        if (DataManager.instance.player.coin < DataManager.instance.consumCoin)
+        if (DataManager.instance.player.coin < GameVariable.consumCoin)
         {
             retryButton.interactable = false;
             Image sprite = retryButton.GetComponent<Image>();
@@ -130,9 +130,9 @@ public class LocalResult : Result
     {
         base.OnClickRetryButton();
 
-        if (DataManager.instance.player.coin >= DataManager.instance.consumCoin)
+        if (DataManager.instance.player.coin >= GameVariable.consumCoin)
         {
-            DataManager.instance.UpdateColumn<long>("coin",-1 * DataManager.instance.consumCoin);
+            DataManager.instance.UpdateCoin(-1 * GameVariable.consumCoin);
 
             GameView.ShowFade(new GameFadeOption{isFade = true, limitedTime = 1f,
             sceneNum = SceneKind.sceneValue[GameManager.gameKind].sceneNum

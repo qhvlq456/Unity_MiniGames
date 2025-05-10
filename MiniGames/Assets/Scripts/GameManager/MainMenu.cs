@@ -17,13 +17,12 @@ public class MainMenu : MonoBehaviour
 
     // 하.. id랑 pw를 이렇게 계속 받아서 쓰면 안될 것 같은데
     // 아 싱글톤 필요해 이건 나의 데이터가 계속 이리 되면 안됨;;
-    async void Awake() {
+    private void Awake() {
         player = DataManager.instance.player;
-        await DataManager.instance.LoadCoin();
     }
     private void Start() {
         SoundManager.instance.ChangeBGM(EBGMClipType.Main);
-        // DataManager.instance.Load(); // 이게 중요함..
+        DataManager.instance.Load();
         EnterMainMenu();
         GameView.ShowFade(new GameFadeOption{
             isFade = false,
@@ -34,14 +33,14 @@ public class MainMenu : MonoBehaviour
         if(DataManager.instance.maxCoin <= player.coin)
         {
             EnterMainMenu(); // 방법이 없음..ㅋㅋ
-            DataManager.instance.ResetCoinTime();
+            DataManager.instance.time.AddFrontTime(DataManager.instance.addCoinPerDelay);
             return;
         }
         
-        if(DataManager.instance.LeftCoinTime() <= 0)
+        if(DataManager.instance.time.DiffSecondTime() <= 0)
         {
             DataManager.instance.UpdateCoin(DataManager.instance.addPerCoin);
-            DataManager.instance.ResetCoinTime();
+            DataManager.instance.time.AddFrontTime(DataManager.instance.addCoinPerDelay);
         }
         EnterMainMenu(); // 방법이 없음..ㅋㅋ
     }
@@ -52,13 +51,14 @@ public class MainMenu : MonoBehaviour
     {
         nameText.text = "Name : " + player.nickName;
         coinText.text = "Coin : " + player.coin;
-        coinTimeText.text = "CoinTime : " + DataManager.instance.VisibleCoinTime();
+        coinTimeText.text = "CoinTime : " + DataManager.instance.time.CountDown();
     }
     public void OnClickAddCoinButton()
     {
         SoundManager.instance.PlayClip(EEffactClipType.CoinButton);
 
-        DataManager.instance.UpdateCoin(DataManager.instance.consumCoin);
+        DataManager.instance.UpdateCoin(GameVariable.addCoin);
+        // EnterMainMenu();
     }
     public async void OnClickQuitButton()
     {
@@ -96,13 +96,14 @@ public class MainMenu : MonoBehaviour
     {
         SoundManager.instance.PlayClip(EEffactClipType.DefaultButton);
         
-        if(player.coin <= 0 || player.coin < DataManager.instance.consumCoin)
+        if(player.coin <= 0 || player.coin < GameVariable.consumCoin)
         {
             AlertBoxView.ShowBox("lack coin","코인이 부족합니다 확인해주세요!");
             Debug.LogError("check coin");
             return;
         }
-        DataManager.instance.UpdateCoin(-1 * DataManager.instance.consumCoin);
+
+        DataManager.instance.UpdateCoin(GameVariable.consumCoin * -1);
         GameView.ShowFade(new GameFadeOption{
             isFade = true,
             limitedTime = 1f,

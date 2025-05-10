@@ -46,7 +46,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
         canvasGroup.interactable = true;
         PhotonNetwork.AutomaticallySyncScene = true;
-        PhotonNetwork.GameVersion = Application.version;
+        PhotonNetwork.GameVersion = GameVariable.gameVersion;
 
         EnterPlayer();
         OnClickCreateRoomUI();
